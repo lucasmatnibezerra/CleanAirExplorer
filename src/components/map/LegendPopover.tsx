@@ -7,12 +7,15 @@ interface LegendPopoverProps {
   onOpenChange: (open:boolean)=>void
 }
 
+// AQI scale ranges aligned with US EPA categories; values approximate breakpoints.
+// descKey maps to existing aqi.* translation keys for consistency.
 const aqiScale = [
-  { label:'0-50', color:'#22c55e', desc:'Good' },
-  { label:'51-100', color:'#eab308', desc:'Moderate' },
-  { label:'101-150', color:'#f97316', desc:'Sensitive' },
-  { label:'151-200', color:'#dc2626', desc:'Unhealthy' },
-  { label:'201+', color:'#7e22ce', desc:'Very Unhealthy+' }
+  { range:'0–50', color:'#22c55e', descKey:'aqi.good' },
+  { range:'51–100', color:'#eab308', descKey:'aqi.moderate' },
+  { range:'101–150', color:'#f97316', descKey:'aqi.unhealthySG' },
+  { range:'151–200', color:'#dc2626', descKey:'aqi.unhealthy' },
+  { range:'201–300', color:'#7e22ce', descKey:'aqi.veryUnhealthy' },
+  { range:'301+', color:'#7f1d1d', descKey:'aqi.hazardous' }
 ]
 
 export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
@@ -65,12 +68,16 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
           <div>
             <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.aqiScale','AQI Scale')}</p>
             <div className="flex gap-3 flex-wrap">
-              {aqiScale.map(s => (
-                <div key={s.label} className="flex items-center gap-1">
-                  <span className="w-4 h-3 rounded" style={{background:s.color}} />
-                  <span className="text-slate-300">{s.label}</span>
-                </div>
-              ))}
+              {aqiScale.map(s => {
+                const cat = t(s.descKey)
+                return (
+                  <div key={s.range} className="flex items-center gap-1" aria-label={`${s.range} ${cat}`}>
+                    <span className="w-4 h-3 rounded ring-1 ring-white/20" style={{background:s.color}} />
+                    <span className="text-slate-300 tabular-nums">{s.range}</span>
+                    <span className="text-slate-400">{cat}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
           <div className="pt-2 border-t border-slate-700/60 text-[10px] text-slate-400">

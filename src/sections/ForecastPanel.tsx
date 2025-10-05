@@ -73,6 +73,16 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
       return `${i===0? 'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`
     }).join(' ')
   },[items])
+  // Build ticks at 0 / 6 / 12 / 18 / last hour
+  const ticks = useMemo(()=> {
+    if(!items.length) return [] as number[]
+    const lastHour = items[items.length-1].hour
+    const base = [0,6,12,18]
+    const arr = base.filter(h=> h<= lastHour)
+    if(!arr.includes(lastHour)) arr.push(lastHour)
+    return arr
+  },[items])
+
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between mb-3 gap-4">
@@ -168,9 +178,18 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
               </div>
             )}
           </div>
-          <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400">
+          <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-400 relative">
             <span>0h</span>
-            <input type="range" min={0} max={items.length-1} value={hourIndex} onChange={e=> setHourIndex(+e.target.value)} className="flex-1" />
+            <div className="relative flex-1">
+              <input aria-label={t('forecast.listAria','Hourly AQI forecast')} type="range" min={0} max={items.length-1} value={hourIndex} onChange={e=> setHourIndex(+e.target.value)} className="w-full" />
+              <div className="absolute inset-x-0 top-4 flex justify-between text-[9px] text-slate-500 pointer-events-none select-none">
+                {ticks.map(h => (
+                  <span key={h} style={{transform:'translateX(-50%)'}} className="relative left-1/2">
+                    {h}h
+                  </span>
+                ))}
+              </div>
+            </div>
             <span>{items.length-1}h</span>
           </div>
           <div aria-live="polite" className="sr-only" ref={announceRef} />

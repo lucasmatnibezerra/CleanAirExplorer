@@ -130,7 +130,8 @@
       "children": "Niños: Limiten esfuerzo físico prolongado si AQI > 100.",
       "older": "Adultos Mayores: Prefieran actividades interiores si AQI > 150.",
       "asthma": "Asma: Mantenga inhalador de rescate accesible; evite ejercicio intenso."
-    }
+    },
+    "emptyCtaHint": "Revise la guía general para prepararse ante posibles cambios en la calidad del aire."
   },
   "aqi": {
     "good": "Bueno",

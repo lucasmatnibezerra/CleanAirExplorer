@@ -130,7 +130,8 @@
       "children": "Crianças: Limitem esforço físico prolongado se IQAr > 100.",
       "older": "Idosos: Prefiram atividades internas se IQAr > 150.",
       "asthma": "Asma: Mantenha inalador de resgate acessível; evite esforço intenso."
-    }
+    },
+    "emptyCtaHint": "Revise orientações gerais para se preparar para possíveis mudanças na qualidade do ar."
   },
   "aqi": {
     "good": "Bom",

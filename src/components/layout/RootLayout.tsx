@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useState, useEffect } from 'react'
 import { useEnterAnimation } from '../../hooks/useEnterAnimation'
 import { TopBar } from './TopBar'
 import { Icon } from '../ui/icons'
@@ -10,19 +10,28 @@ const StationDrawer = lazy(() => import('../stations/StationDrawer').then(m => (
 export function RootLayout() {
   const { t } = useTranslation()
   const mainAnimRef = useEnterAnimation<HTMLDivElement>({ translateY: 12, duration: 640, opacityFrom: 0 });
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if(typeof window === 'undefined') return false
+    const stored = localStorage.getItem('sidebar:collapsed')
+    return stored === '1'
+  })
+  useEffect(()=> {
+    if(typeof window !== 'undefined'){
+      localStorage.setItem('sidebar:collapsed', collapsed ? '1':'0')
+    }
+  },[collapsed])
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`group relative border-r border-border/60 bg-card/40 backdrop-blur-md p-4 hidden md:flex flex-col transition-[width] duration-300 ease-out ${collapsed ? 'w-16' : 'w-56'}`} aria-label="Sidebar navigation">
+        <aside className={`group relative border-r border-border/60 bg-card/40 backdrop-blur-md p-3 hidden md:flex flex-col transition-[width] duration-300 ease-out ${collapsed ? 'w-16' : 'w-56'}`} aria-label="Sidebar navigation">
           <div className="flex items-center justify-between mb-4 text-sm font-semibold">
-            <span className={`transition-opacity duration-200 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>{t('nav.title','Navigation')}</span>
+            <span className={`transition-opacity duration-200 text-muted-foreground tracking-wide uppercase text-[11px] ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>{t('layout.navigation','Navigation')}</span>
             <button
               onClick={() => setCollapsed(c => !c)}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-label={collapsed ? t('layout.expand','Expand sidebar') : t('layout.collapse','Collapse sidebar')}
               aria-pressed={collapsed}
-              className="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground focus-visible:outline focus-visible:outline-accent"
+              className="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
             >
               {collapsed ? <Icon.chevronDown className="rotate-90 w-4 h-4" /> : <Icon.chevronDown className="-rotate-90 w-4 h-4" />}
             </button>

@@ -1,6 +1,6 @@
 import { useAlerts } from '../api/hooks'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Skeleton } from '../components/ui/Skeleton'
 import type { Alert } from '../api/types'
 
@@ -15,15 +15,28 @@ export function AlertsPanel(){
       case 'unhealthy': return { label: t('alerts.unhealthy','Unhealthy'), icon: '!', wrap: 'bg-red-900/30 border-red-700/40', chip: 'bg-red-500/20 text-red-300 border-red-500/40' }
     }
   }
+  // Placeholder mini-sparkline data (could later map to risk projection)
+  const spark = useMemo(()=> {
+    if(!data || data.length>0) return ''
+    const mock = [20,32,28,40,36,44,50]
+    const min = Math.min(...mock)
+    const max = Math.max(...mock)
+    const span = Math.max(1, max-min)
+    return mock.map((v,i)=> {
+      const x = (i/(mock.length-1))*100
+      const y = 30 - ((v-min)/span)*30
+      return `${i===0? 'M':'L'}${x.toFixed(1)},${y.toFixed(1)}`
+    }).join(' ')
+  },[data])
   return (
     <section className="rounded-xl ring-1 ring-slate-700/50 p-4 bg-slate-800/60 backdrop-blur">
-  <h2 className="font-semibold mb-2 text-rose-300">{t('alerts.title','Health Alerts')}</h2>
+  <h2 className="font-semibold mb-2 text-rose-200 drop-shadow-sm">{t('alerts.title','Health Alerts')}</h2>
       {isLoading && (
         <div className="space-y-2">
           {Array.from({length:2}).map((_,i)=>(<Skeleton key={i} className="h-14" />))}
         </div>
       )}
-      <ul className="space-y-2 text-sm">
+  <ul className="space-y-2 text-sm">
         {data?.map((a: Alert) => {
           const m = severityMeta(a.severity)
           return (
@@ -38,7 +51,26 @@ export function AlertsPanel(){
               </div>
             </li>
           )})}
-  {data?.length === 0 && <li className="text-xs text-slate-400">{t('alerts.none','No active alerts.')}</li>}
+  {data?.length === 0 && (
+  <li className="p-4 rounded border border-slate-500/50 bg-slate-700/30 flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-xs text-slate-300 font-medium">{t('alerts.none','No active alerts.')}</p>
+          <p className="text-[11px] text-slate-300/90">{t('alerts.emptyCtaHint','Review general guidance to prepare for potential changes in air quality.')}</p>
+        </div>
+        {spark && (
+          <svg viewBox="0 0 100 30" className="w-24 h-8">
+            <path d={spark} fill="none" stroke="#38bdf8" strokeWidth={1} className="opacity-60" />
+          </svg>
+        )}
+      </div>
+      <div>
+        <button onClick={()=> setOpen(true)} className="text-[11px] px-2 py-1.5 rounded bg-sky-600/80 hover:bg-sky-500 text-white font-medium focus-visible:outline focus-visible:outline-sky-400">
+          {t('alerts.viewGuidance','View guidance')}
+        </button>
+      </div>
+    </li>
+  )}
       </ul>
       {open && (
   <div role="dialog" aria-modal="true" aria-label={t('alerts.guidanceAria','Health guidance')} className="fixed inset-0 z-50 flex items-center justify-center p-4">
