@@ -175,8 +175,9 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
         const y = (world.y - center.y) * scale * 256 + canvas.height/2
         return { x, y }
       }
-      // Sample grid every ~16px
-      const step = 24
+  // Adaptive sampling step based on zoom (coarser when zoomed out for performance)
+  const currentZoom = mapObj.current!.getZoom() || 4
+  const step = currentZoom < 5 ? 32 : currentZoom < 7 ? 24 : currentZoom < 9 ? 16 : 12
       for(let y=0; y<canvas.height; y+=step){
         for(let x=0; x<canvas.width; x+=step){
           // Estimate lat/lng for pixel by inverse of proj (approx using center offsets) – simplified radial weighting
@@ -234,8 +235,9 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
         if(!projSys) return
         const scale = Math.pow(2, mapObj.current.getZoom() || 4)
         const center = projSys.fromLatLngToPoint(mapObj.current.getCenter()!)
-        // Iterate pixels in a coarser grid for performance
-        const step = 8
+  // Adaptive pixel sampling for performance (finer at higher zoom)
+  const currentZoom = mapObj.current.getZoom() || 4
+  const step = currentZoom < 5 ? 14 : currentZoom < 7 ? 10 : currentZoom < 9 ? 8 : 6
         for(let py=0; py<canvas.height; py+=step){
           for(let px=0; px<canvas.width; px+=step){
             // Convert screen pixel to world point

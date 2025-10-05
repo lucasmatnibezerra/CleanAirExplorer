@@ -80,6 +80,17 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
               })}
             </div>
           </div>
+          <div>
+            <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.ozoneForecast','Ozone Forecast')}</p>
+            <div className="space-y-2">
+              <div className="h-3 w-full rounded bg-gradient-to-r from-sky-600 via-fuchsia-500 to-red-600 relative overflow-hidden">
+                <span className="absolute left-0 -top-1 text-[9px] text-slate-200">0</span>
+                <span className="absolute left-1/2 -translate-x-1/2 -top-1 text-[9px] text-slate-200">60</span>
+                <span className="absolute right-0 -top-1 text-[9px] text-slate-200">120+</span>
+              </div>
+              <p className="text-slate-400 text-[10px] leading-snug">{t('legend.ozoneForecastHint','ppb (prototype gradient; higher = elevated ozone')}</p>
+            </div>
+          </div>
           <div className="pt-2 border-t border-slate-700/60 text-[10px] text-slate-400">
             <p>{t('legend.sources','Data sources: TEMPO (satellite), local stations (mock)')}</p>
           </div>

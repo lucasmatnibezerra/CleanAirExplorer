@@ -23,7 +23,9 @@
     "button": "Leyenda",
     "layers": "Capas",
     "aqiScale": "Escala ICA",
-    "sources": "Fuentes: TEMPO (satélite), estaciones locales (simulado)"
+  "sources": "Fuentes: TEMPO (satélite), estaciones locales (simulado)",
+  "ozoneForecast": "Pronóstico de Ozono",
+  "ozoneForecastHint": "ppb (gradiente prototipo; mayor = ozono elevado)"
   },
   "actions": {
     "close": "Cerrar",

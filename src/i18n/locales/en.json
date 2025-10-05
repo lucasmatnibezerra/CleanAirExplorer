@@ -23,7 +23,9 @@
     "button": "Legend",
     "layers": "Layers",
     "aqiScale": "AQI Scale",
-    "sources": "Data sources: TEMPO (satellite), local stations (mock)"
+  "sources": "Data sources: TEMPO (satellite), local stations (mock)",
+  "ozoneForecast": "Ozone Forecast",
+  "ozoneForecastHint": "ppb (prototype gradient; higher = elevated ozone)"
   },
   "actions": {
     "close": "Close",
