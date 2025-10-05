@@ -57,6 +57,7 @@
     "toggleNo2": "Alternar capa de dióxido de nitrógeno",
     "toggleO3": "Alternar capa de ozono",
     "toggleHeatmap": "Alternar mapa de calor AQI",
+  "toggleOzoneForecast": "Alternar capa de pronóstico de ozono",
     "chooseLayersCta": "Elegir Capas"
   },
   "dashboard": {

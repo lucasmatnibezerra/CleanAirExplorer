@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useStations } from '../../api/hooks'
+import { getOzoneGrid } from '../../data/ozoneLoader'
 import { useAppStore } from '../../state/store'
 
 declare global {
@@ -21,6 +22,8 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
   const { data: stations } = useStations()
   const showStations = useAppStore(s => s.layers.find(l=>l.key==='stations')?.visible)
   const showHeatmap = useAppStore(s => s.layers.find(l=>l.key==='aqi_heatmap')?.visible)
+  const showOzoneForecast = useAppStore(s => s.layers.find(l=>l.key==='ozone_forecast')?.visible)
+  const hourIndex = useAppStore(s => s.forecastHourIndex)
   const setSelected = useAppStore(s => s.setSelectedStation)
 
   // Inject Google Maps script lazily (idempotent)
@@ -198,6 +201,78 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
     const listener = google.maps.event.addListener(mapObj.current, 'idle', () => render())
     return () => { google.maps.event.removeListener(listener) }
   },[showHeatmap, stations])
+
+  // Ozone forecast grid rendering (bilinear-sampled to pixels)
+  useEffect(()=> {
+    if(!mapObj.current) return
+    const existing = document.getElementById('ozone-forecast-layer') as HTMLCanvasElement | null
+    if(!showOzoneForecast){ existing?.remove(); return }
+    let canvas = existing
+    if(!canvas){
+      canvas = document.createElement('canvas')
+      canvas.id = 'ozone-forecast-layer'
+      canvas.style.position = 'absolute'
+      canvas.style.top = '0'
+      canvas.style.left = '0'
+      canvas.style.width = '100%'
+      canvas.style.height = '100%'
+      canvas.style.pointerEvents = 'none'
+      canvas.style.mixBlendMode = 'multiply'
+      mapRef.current?.appendChild(canvas)
+    }
+    let cancelled = false
+    async function render(){
+      if(!canvas || !mapObj.current) return
+      try {
+        const { meta, data } = await getOzoneGrid(hourIndex)
+        if(cancelled) return
+        const rect = mapRef.current!.getBoundingClientRect()
+        canvas.width = rect.width; canvas.height = rect.height
+        const ctx = canvas.getContext('2d')!
+        ctx.clearRect(0,0,canvas.width, canvas.height)
+        const projSys = (mapObj.current as any).getProjection?.()
+        if(!projSys) return
+        const scale = Math.pow(2, mapObj.current.getZoom() || 4)
+        const center = projSys.fromLatLngToPoint(mapObj.current.getCenter()!)
+        // Iterate pixels in a coarser grid for performance
+        const step = 8
+        for(let py=0; py<canvas.height; py+=step){
+          for(let px=0; px<canvas.width; px+=step){
+            // Convert screen pixel to world point
+            const worldX = center.x + (px - canvas.width/2)/(scale*256)
+            const worldY = center.y + (py - canvas.height/2)/(scale*256)
+            const latLng = projSys.fromPointToLatLng({x:worldX, y:worldY})
+            const lat = latLng.lat(); const lon = latLng.lng()
+            if(lat < meta.lat_min || lat > meta.lat_max || lon < meta.lon_min || lon > meta.lon_max) continue
+            const latFrac = (lat - meta.lat_min) / (meta.lat_max - meta.lat_min)
+            const lonFrac = (lon - meta.lon_min) / (meta.lon_max - meta.lon_min)
+            const y = latFrac * (meta.rows - 1)
+            const x = lonFrac * (meta.cols - 1)
+            const y0 = Math.floor(y), y1 = Math.min(meta.rows -1, y0+1)
+            const x0 = Math.floor(x), x1 = Math.min(meta.cols -1, x0+1)
+            const fy = y - y0, fx = x - x0
+            const idx = (row:number, col:number) => row * meta.cols + col
+            const v00 = data[idx(y0,x0)], v01 = data[idx(y0,x1)], v10 = data[idx(y1,x0)], v11 = data[idx(y1,x1)]
+            const v0 = v00*(1-fx)+v01*fx
+            const v1 = v10*(1-fx)+v11*fx
+            const val = v0*(1-fy)+v1*fy // ppb
+            // Color scale (simple blue -> magenta -> red)
+            const normalized = Math.min(1, Math.max(0, val / 120))
+            const r = Math.round(255 * normalized)
+            const g = Math.round(40 * (1-normalized))
+            const b = Math.round(180 * (1-normalized) + 60 * normalized)
+            ctx.fillStyle = `rgba(${r},${g},${b},0.35)`
+            ctx.fillRect(px, py, step, step)
+          }
+        }
+      } catch(err){
+        // Silently ignore rendering errors for now
+      }
+    }
+    render()
+    const idleL = google.maps.event.addListener(mapObj.current, 'idle', () => render())
+    return () => { cancelled = true; google.maps.event.removeListener(idleL) }
+  },[showOzoneForecast, hourIndex])
 
   return <div ref={mapRef} className="absolute inset-0" aria-label="Google Map" />
 }

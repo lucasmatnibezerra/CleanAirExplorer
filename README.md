@@ -252,6 +252,61 @@ Open a short issue or checklist PR. Keep scope slices small: one panel enhanceme
 4. Need offline fallback or static “last known” tiles?
 5. Health guidance localization / multilingual requirements?
 
+## 22. Ozone Forecast Grid (Prototype Layer)
+
+The prototype introduces an experimental ozone forecast visualization layer driven by a lightweight grid manifest + `.npy` hourly files. This enables rapid client-side prototyping without a backend service.
+
+### 22.1 Manifest Format
+Location: `public/data/ozone/manifest.json`
+
+Example:
+```json
+{
+  "version": 1,
+  "variable": "ozone_ppb",
+  "unit": "ppb",
+  "grid": { "lat_min": -60, "lat_max": 60, "lon_min": -130, "lon_max": -30, "rows": 240, "cols": 400 },
+  "hours": [ { "index":0, "file":"ozone_h00.npy", "timestamp":"2025-10-05T00:00:00Z" } ],
+  "attribution": "Prototype placeholder manifest for ozone forecast visualization"
+}
+```
+
+Each `.npy` file MUST be a little‑endian float32 2D array (`rows x cols`). Values represent ozone mixing ratio in ppb at the corresponding grid cell center (uniform lat/lon spacing implied).
+
+### 22.2 Loader API
+Implemented in `src/data/ozoneLoader.ts`:
+```ts
+loadManifest(): Promise<OzoneManifest>
+getOzoneGrid(hourIndex:number): Promise<{ meta: OzoneGridMeta; data: Float32Array }>
+getOzoneValue(lat:number, lon:number, hourIndex:number): Promise<{ value:number|null }>
+clearOzoneCache(): void
+```
+Interpolation: Bilinear in grid space. Out‑of‑bounds returns `null`.
+
+### 22.3 Map Integration
+The layer key `ozone_forecast` (Zustand store) toggles a canvas overlay rendered in `GoogleMap.tsx`. Rendering strategy:
+1. On toggle ON, fetch selected hour grid via `getOzoneGrid(forecastHourIndex)`.
+2. Sample projected screen pixels on an 8px step, inverse project to lat/lon using Google Maps projection.
+3. Bilinear sample ozone value; map value (0–120+ ppb) to a perceptual gradient (blue → magenta → red) with alpha blending (`multiply` blend mode) so station / AQI overlays remain discernible.
+4. Re-render on map `idle` events or forecast hour change.
+
+### 22.4 Performance Notes
+- Manifest & hour arrays cached in memory (`Promise` cache) to prevent duplicate fetches.
+- 8px sampling step keeps worst‑case fill operations < ~ (width * height)/64.
+- Further optimization: dynamic step size based on zoom (future).
+
+### 22.5 Replacing with Real Data
+When backend is ready, swap `.npy` fetch logic for a `/forecast/ozone?hour=` endpoint returning a binary (e.g., flat Float32Array or Zstandard-compressed) + separate JSON grid metadata. The current API surface can remain stable.
+
+### 22.6 Testing
+`ozone-forecast-toggle.test.tsx` asserts the layer toggle button updates `aria-pressed` and store visibility state.
+
+### 22.7 Roadmap Enhancements
+- Adaptive color scale with legend ramp & numeric min/max.
+- Temporal tweening between consecutive hours for smooth playback.
+- Web Worker off-thread colorization & optional WebGL path.
+- Data provenance panel listing source model + initialization cycle.
+
 ---
 **Contact / Coordination:** Use project discussion board or tag the data pipeline lead for endpoint contract changes.
 

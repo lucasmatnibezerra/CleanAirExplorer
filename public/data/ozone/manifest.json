@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "variable": "ozone_ppb",
+  "unit": "ppb",
+  "grid": {
+    "lat_min": -60.0,
+    "lat_max": 60.0,
+    "lon_min": -130.0,
+    "lon_max": -30.0,
+    "rows": 240,
+    "cols": 400
+  },
+  "hours": [
+    { "index": 0,  "file": "ozone_h00.npy", "timestamp": "2025-10-05T00:00:00Z" },
+    { "index": 1,  "file": "ozone_h01.npy", "timestamp": "2025-10-05T01:00:00Z" },
+    { "index": 2,  "file": "ozone_h02.npy", "timestamp": "2025-10-05T02:00:00Z" },
+    { "index": 3,  "file": "ozone_h03.npy", "timestamp": "2025-10-05T03:00:00Z" },
+    { "index": 4,  "file": "ozone_h04.npy", "timestamp": "2025-10-05T04:00:00Z" },
+    { "index": 5,  "file": "ozone_h05.npy", "timestamp": "2025-10-05T05:00:00Z" },
+    { "index": 6,  "file": "ozone_h06.npy", "timestamp": "2025-10-05T06:00:00Z" },
+    { "index": 7,  "file": "ozone_h07.npy", "timestamp": "2025-10-05T07:00:00Z" },
+    { "index": 8,  "file": "ozone_h08.npy", "timestamp": "2025-10-05T08:00:00Z" },
+    { "index": 9,  "file": "ozone_h09.npy", "timestamp": "2025-10-05T09:00:00Z" },
+    { "index": 10, "file": "ozone_h10.npy", "timestamp": "2025-10-05T10:00:00Z" },
+    { "index": 11, "file": "ozone_h11.npy", "timestamp": "2025-10-05T11:00:00Z" },
+    { "index": 12, "file": "ozone_h12.npy", "timestamp": "2025-10-05T12:00:00Z" },
+    { "index": 13, "file": "ozone_h13.npy", "timestamp": "2025-10-05T13:00:00Z" },
+    { "index": 14, "file": "ozone_h14.npy", "timestamp": "2025-10-05T14:00:00Z" }
+  ],
+  "attribution": "Prototype placeholder manifest for ozone forecast visualization"
+}

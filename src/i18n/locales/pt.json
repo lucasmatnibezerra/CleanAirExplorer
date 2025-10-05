@@ -57,6 +57,7 @@
     "toggleNo2": "Alternar camada de dióxido de nitrogênio",
     "toggleO3": "Alternar camada de ozônio",
     "toggleHeatmap": "Alternar heatmap de AQI",
+  "toggleOzoneForecast": "Alternar camada de previsão de ozônio",
     "chooseLayersCta": "Escolher Camadas"
   },
   "dashboard": {

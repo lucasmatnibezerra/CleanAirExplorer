@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type LayerKey = 'tempo_no2' | 'tempo_o3' | 'aqi_surface' | 'stations' | 'wind_vectors' | 'aqi_heatmap'
+export type LayerKey = 'tempo_no2' | 'tempo_o3' | 'aqi_surface' | 'stations' | 'wind_vectors' | 'aqi_heatmap' | 'ozone_forecast'
 export interface LayerState { key: LayerKey; label: string; visible: boolean; order: number }
 
 export interface SettingsState {
@@ -31,6 +31,7 @@ const defaultLayers: LayerState[] = [
   { key:'stations', label:'Stations', visible:true, order:4 },
   { key:'wind_vectors', label:'Wind', visible:false, order:5 },
   { key:'aqi_heatmap', label:'AQI Heatmap', visible:false, order:6 },
+  { key:'ozone_forecast', label:'Ozone Forecast', visible:false, order:7 },
 ]
 
 const defaultSettings: SettingsState = { units:'AQI', alertThreshold:100, homeLocation: null }

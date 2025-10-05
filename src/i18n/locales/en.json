@@ -57,6 +57,7 @@
     "toggleNo2": "Toggle nitrogen dioxide layer",
     "toggleO3": "Toggle ozone layer",
     "toggleHeatmap": "Toggle AQI heatmap",
+  "toggleOzoneForecast": "Toggle ozone forecast layer",
     "chooseLayersCta": "Choose Layers"
   },
   "dashboard": {
