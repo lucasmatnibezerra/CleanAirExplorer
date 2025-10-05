@@ -26,6 +26,7 @@
   "sources": "Data sources: TEMPO (satellite), local stations (mock)",
   "ozoneForecast": "Ozone Forecast",
   "ozoneForecastHint": "ppb (prototype gradient; higher = elevated ozone)"
+  ,"ozoneRange": "Range"
   },
   "actions": {
     "close": "Close",

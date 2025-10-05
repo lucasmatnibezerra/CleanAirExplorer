@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useAppStore } from '../../state/store'
 import { useTranslation } from 'react-i18next'
 
@@ -88,7 +88,8 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
                 <span className="absolute left-1/2 -translate-x-1/2 -top-1 text-[9px] text-slate-200">60</span>
                 <span className="absolute right-0 -top-1 text-[9px] text-slate-200">120+</span>
               </div>
-              <p className="text-slate-400 text-[10px] leading-snug">{t('legend.ozoneForecastHint','ppb (prototype gradient; higher = elevated ozone')}</p>
+              <p className="text-slate-400 text-[10px] leading-snug">{t('legend.ozoneForecastHint','ppb (prototype gradient; higher = elevated ozone)')}</p>
+              <OzoneRangeMini />
             </div>
           </div>
           <div className="pt-2 border-t border-slate-700/60 text-[10px] text-slate-400">
@@ -100,6 +101,26 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
       )}
     </div>
   )
+}
+
+function OzoneRangeMini(){
+  const { t } = useTranslation()
+  const [range, setRange] = useState<{min:string; max:string} | null>(null)
+  useEffect(()=>{
+    function pull(){
+      const canvas = document.getElementById('ozone-forecast-layer') as HTMLCanvasElement | null
+      if(canvas && canvas.dataset.ozMin && canvas.dataset.ozMax){
+        setRange({ min: canvas.dataset.ozMin, max: canvas.dataset.ozMax })
+      }
+    }
+    pull()
+  const onEvt = () => pull()
+    window.addEventListener('ozoneRangeUpdated', onEvt as any)
+  const id = setInterval(pull, 100)
+    return ()=> { window.removeEventListener('ozoneRangeUpdated', onEvt as any); clearInterval(id) }
+  },[])
+  if(!range) return null
+  return <p className="text-[10px] text-slate-400" aria-label="ozone-range-line">{t('legend.ozoneRange','Range')}: <span className="text-slate-200 tabular-nums">{range.min}</span> – <span className="text-slate-200 tabular-nums">{range.max}</span> ppb</p>
 }
 
 export default LegendPopover

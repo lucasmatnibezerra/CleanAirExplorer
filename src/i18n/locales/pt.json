@@ -26,6 +26,7 @@
   "sources": "Fontes: TEMPO (satélite), estações locais (simulação)",
   "ozoneForecast": "Previsão de Ozônio",
   "ozoneForecastHint": "ppb (gradiente protótipo; maior = ozônio elevado)"
+  ,"ozoneRange": "Intervalo"
   },
   "actions": {
     "close": "Fechar",

@@ -208,6 +208,13 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
     if(!mapObj.current) return
     const existing = document.getElementById('ozone-forecast-layer') as HTMLCanvasElement | null
     if(!showOzoneForecast){ existing?.remove(); return }
+    // Ensure a deterministic promise exists for tests to await even before first render completes.
+    if(!(window as any).__ozoneRangeReady){
+      let _resolve: any
+      const p = new Promise(res => { _resolve = res })
+      ;(window as any).__ozoneRangeReady = p
+      ;(window as any).__ozoneRangeResolve = _resolve
+    }
     let canvas = existing
     if(!canvas){
       canvas = document.createElement('canvas')
@@ -238,6 +245,8 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
   // Adaptive pixel sampling for performance (finer at higher zoom)
   const currentZoom = mapObj.current.getZoom() || 4
   const step = currentZoom < 5 ? 14 : currentZoom < 7 ? 10 : currentZoom < 9 ? 8 : 6
+        let vMin = Number.POSITIVE_INFINITY
+        let vMax = Number.NEGATIVE_INFINITY
         for(let py=0; py<canvas.height; py+=step){
           for(let px=0; px<canvas.width; px+=step){
             // Convert screen pixel to world point
@@ -258,6 +267,8 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
             const v0 = v00*(1-fx)+v01*fx
             const v1 = v10*(1-fx)+v11*fx
             const val = v0*(1-fy)+v1*fy // ppb
+            if(val < vMin) vMin = val
+            if(val > vMax) vMax = val
             // Color scale (simple blue -> magenta -> red)
             const normalized = Math.min(1, Math.max(0, val / 120))
             const r = Math.round(255 * normalized)
@@ -267,6 +278,31 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
             ctx.fillRect(px, py, step, step)
           }
         }
+        // Fallback: if no samples were taken (e.g., zero-sized canvas in test/jsdom), derive min/max from raw grid
+        if(!isFinite(vMin) || !isFinite(vMax)){
+          vMin = Number.POSITIVE_INFINITY; vMax = Number.NEGATIVE_INFINITY
+          for(let i=0;i<data.length;i++){
+            const val = data[i]
+            if(val < vMin) vMin = val
+            if(val > vMax) vMax = val
+          }
+        }
+        canvas.dataset.ozMin = isFinite(vMin)? vMin.toFixed(1): ''
+        canvas.dataset.ozMax = isFinite(vMax)? vMax.toFixed(1): ''
+        try {
+          window.dispatchEvent(new CustomEvent('ozoneRangeUpdated', { detail: { min: vMin, max: vMax } }))
+          // Deterministic test hook: resolve a global promise the first time range is computed
+          if(!(window as any).__ozoneRangeReady){
+            let _resolve: any
+            const p = new Promise(res => { _resolve = res })
+            ;(window as any).__ozoneRangeReady = p
+            ;(window as any).__ozoneRangeResolve = _resolve
+          }
+          if((window as any).__ozoneRangeResolve){
+            try { (window as any).__ozoneRangeResolve({ min: vMin, max: vMax }) } catch {}
+            delete (window as any).__ozoneRangeResolve
+          }
+        } catch { /* ignore */ }
       } catch(err){
         // Silently ignore rendering errors for now
       }

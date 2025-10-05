@@ -26,6 +26,7 @@
   "sources": "Fuentes: TEMPO (satélite), estaciones locales (simulado)",
   "ozoneForecast": "Pronóstico de Ozono",
   "ozoneForecastHint": "ppb (gradiente prototipo; mayor = ozono elevado)"
+  ,"ozoneRange": "Rango"
   },
   "actions": {
     "close": "Cerrar",
