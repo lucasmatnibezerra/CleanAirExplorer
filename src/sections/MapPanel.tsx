@@ -35,6 +35,7 @@ export function MapPanel(){
   const aqiSurf = layers.find(l=> l.key==='aqi_surface')
   const no2 = layers.find(l=> l.key==='tempo_no2')
   const o3 = layers.find(l=> l.key==='tempo_o3')
+  const heat = layers.find(l=> l.key==='aqi_heatmap')
   const visibleCount = layers.filter(l => l.visible).length
   const showEmpty = visibleCount === 0
   return (
@@ -70,6 +71,14 @@ export function MapPanel(){
             size="sm"
             className={(o3?.visible? 'ring-1 ring-emerald-500/50 text-emerald-200 bg-emerald-600/20 ' : 'text-emerald-300 hover:bg-emerald-500/10 focus-visible:bg-emerald-500/15 ') + 'transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500/60'}
           >O₃</Button>
+          <Button
+            aria-label={t('map.toggleHeatmap','Toggle AQI heatmap')}
+            aria-pressed={heat?.visible || false}
+            onClick={()=> toggle('aqi_heatmap')}
+            variant={heat?.visible? 'primary':'ghost'}
+            size="sm"
+            className={(heat?.visible? 'ring-1 ring-fuchsia-500/50 text-fuchsia-200 bg-fuchsia-600/20 ' : 'text-fuchsia-300 hover:bg-fuchsia-500/10 focus-visible:bg-fuchsia-500/15 ') + 'transition-colors focus-visible:outline-2 focus-visible:outline-fuchsia-500/60'}
+          >HM</Button>
           <LegendPopover open={legendOpen} onOpenChange={setLegendOpen} />
         </div>
       </div>

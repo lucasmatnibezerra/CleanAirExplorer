@@ -56,6 +56,7 @@
     "toggleAqi": "Alternar superfície AQI",
     "toggleNo2": "Alternar camada de dióxido de nitrogênio",
     "toggleO3": "Alternar camada de ozônio",
+    "toggleHeatmap": "Alternar heatmap de AQI",
     "chooseLayersCta": "Escolher Camadas"
   },
   "dashboard": {

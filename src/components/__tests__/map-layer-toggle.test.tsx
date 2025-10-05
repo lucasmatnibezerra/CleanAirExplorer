@@ -18,7 +18,7 @@ describe('Map layer toggles', () => {
     ] })
   const qc = new QueryClient()
   render(<QueryClientProvider client={qc}><MapPanel /></QueryClientProvider>)
-    const aqiBtn = await screen.findByRole('button', { name: /aqi surface|toggle aqi/i })
+  const aqiBtn = await screen.findByRole('button', { name: /toggle aqi surface/i })
     expect(aqiBtn).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(aqiBtn)
     await waitFor(()=> expect(aqiBtn).toHaveAttribute('aria-pressed', 'false'))

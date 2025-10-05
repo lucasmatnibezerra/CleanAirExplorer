@@ -20,6 +20,7 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
   const [zoom, setZoom] = useState<number>(4)
   const { data: stations } = useStations()
   const showStations = useAppStore(s => s.layers.find(l=>l.key==='stations')?.visible)
+  const showHeatmap = useAppStore(s => s.layers.find(l=>l.key==='aqi_heatmap')?.visible)
   const setSelected = useAppStore(s => s.setSelectedStation)
 
   // Inject Google Maps script lazily (idempotent)
@@ -134,6 +135,69 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps){
       markersRef.current.push(marker)
     }
   },[stations, showStations, setSelected, zoom])
+
+  // Simple heatmap via canvas sampling inverse-distance weighting of station AQI
+  useEffect(()=> {
+    if(!mapObj.current) return
+    const existing = document.getElementById('aqi-heatmap-layer') as HTMLCanvasElement | null
+    if(!showHeatmap){ existing?.remove(); return }
+    if(!stations || stations.length===0) return
+    let canvas = existing
+    if(!canvas){
+      canvas = document.createElement('canvas')
+      canvas.id = 'aqi-heatmap-layer'
+      canvas.style.position = 'absolute'
+      canvas.style.top = '0'
+      canvas.style.left = '0'
+      canvas.style.width = '100%'
+      canvas.style.height = '100%'
+      canvas.style.pointerEvents = 'none'
+      canvas.style.mixBlendMode = 'screen'
+      mapRef.current?.appendChild(canvas)
+    }
+    function render(){
+      if(!canvas || !mapObj.current) return
+      const rect = mapRef.current!.getBoundingClientRect()
+      canvas.width = rect.width; canvas.height = rect.height
+      const ctx = canvas.getContext('2d')!
+      ctx.clearRect(0,0,canvas.width, canvas.height)
+      const proj = (lat:number, lng:number) => {
+        const pt = new google.maps.LatLng(lat, lng)
+        const scale = Math.pow(2, mapObj.current!.getZoom() || 4)
+        const projSys = (mapObj.current as any).getProjection?.()
+        if(!projSys){ return { x:-9999, y:-9999 } }
+        const world = projSys.fromLatLngToPoint(pt)
+        const center = projSys.fromLatLngToPoint(mapObj.current!.getCenter()!)
+        const x = (world.x - center.x) * scale * 256 + canvas.width/2
+        const y = (world.y - center.y) * scale * 256 + canvas.height/2
+        return { x, y }
+      }
+      // Sample grid every ~16px
+      const step = 24
+      for(let y=0; y<canvas.height; y+=step){
+        for(let x=0; x<canvas.width; x+=step){
+          // Estimate lat/lng for pixel by inverse of proj (approx using center offsets) – simplified radial weighting
+          // Instead we just compute distance in screen space to station projections (cheap & approximate)
+          let wSum = 0, vSum = 0
+          stations?.forEach(st => {
+            const p = proj(st.location.lat, st.location.lon)
+            const dx = p.x - x; const dy = p.y - y
+            const d2 = dx*dx + dy*dy
+            const w = 1 / (1 + d2 * 0.002) // decay factor
+            wSum += w
+            vSum += w * st.latestAQI
+          })
+          const aqi = vSum / Math.max(1, wSum)
+          const color = aqi<=50? [34,197,94]: aqi<=100? [234,179,8]: aqi<=150? [249,115,22]: aqi<=200? [220,38,38]: [126,34,206]
+          ctx.fillStyle = `rgba(${color[0]},${color[1]},${color[2]},0.25)`
+          ctx.fillRect(x - step/2, y - step/2, step, step)
+        }
+      }
+    }
+    render()
+    const listener = google.maps.event.addListener(mapObj.current, 'idle', () => render())
+    return () => { google.maps.event.removeListener(listener) }
+  },[showHeatmap, stations])
 
   return <div ref={mapRef} className="absolute inset-0" aria-label="Google Map" />
 }
