@@ -1,11 +1,15 @@
 import { useForecast } from '../api/hooks'
+import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppStore } from '../state/store'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Badge } from '../components/ui/badge'
 import { aqiBadgeClass, aqiCategory, aqiColor } from '../lib/aqi'
+import { Card } from '../components/ui/card'
+import { Button } from '../components/ui/button'
 
 export function ForecastPanel({ compact = false }: { compact?: boolean }){
+  const { t } = useTranslation()
   const { data, isLoading } = useForecast()
   const [scrollIndex, setScrollIndex] = useState(0)
   const hourIndex = useAppStore(s => s.forecastHourIndex)
@@ -22,7 +26,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
         aqi: h.aqi,
         pollutant: (h as any).pollutant as string | undefined,
         delta,
-        category: aqiCategory(h.aqi)
+  category: t(aqiCategory(h.aqi, {key:true}) as string)
       }
     })
   },[hours])
@@ -70,11 +74,11 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
     }).join(' ')
   },[items])
   return (
-    <section className="rounded-xl ring-1 ring-slate-700/50 p-4 bg-slate-800/60 backdrop-blur">
-      <div className="flex items-start justify-between mb-2 gap-4">
+    <Card className="p-4">
+      <div className="flex items-start justify-between mb-3 gap-4">
         <div>
-          <h2 className="font-semibold text-sky-300 leading-snug">48h Forecast</h2>
-          <p className="text-[10px] text-slate-400">Hour {hourIndex+1} / {items.length}</p>
+          <h2 className="font-semibold text-sky-300 leading-snug">{t('forecast.title')}</h2>
+          <p className="text-[10px] text-muted-foreground">{hourIndex+1} / {items.length}</p>
           {spark && (
             <svg viewBox="0 0 100 24" className="mt-1 w-24 h-6 overflow-visible">
               <path d={spark} fill="none" stroke="#38bdf8" strokeWidth={1} className="opacity-40" />
@@ -87,11 +91,11 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
         {current && (
           <div className="flex flex-col items-end gap-1">
             <Badge variant="outline" className={aqiBadgeClass(current.aqi)}>{current.category}</Badge>
-            <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${currentDelta===0? 'border-slate-600 text-slate-300':'border-sky-600 text-sky-300'}`}
+            <Badge variant="outline" className={`flex gap-1 items-center ${currentDelta===0? 'border-slate-600 text-slate-300':'border-sky-600 text-sky-300'}`}
               aria-label="trend" title={currentDelta===0? 'Stable': currentDelta>0? 'Rising':'Falling'}>
               <span>{deltaArrow}</span>
               <span>{currentDelta===0? 'Stable': `${currentDelta>0? '+':''}${currentDelta}`}</span>
-            </span>
+            </Badge>
           </div>
         )}
       </div>
@@ -109,10 +113,10 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
       {!isLoading && (
         <div className={compact ? 'space-y-2' : ''}>
           {compact && (
-            <div className="flex justify-between text-[10px] text-slate-400">
-              <button disabled={scrollIndex===0} onClick={()=> setScrollIndex(i=> Math.max(0, i-4))} className="disabled:opacity-30">◀</button>
-              <span>{slice.length} / {items.length} hours</span>
-              <button disabled={scrollIndex+12>=items.length} onClick={()=> setScrollIndex(i=> Math.min(items.length-12, i+4))} className="disabled:opacity-30">▶</button>
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground gap-2">
+              <Button variant="ghost" size="icon" disabled={scrollIndex===0} onClick={()=> setScrollIndex(i=> Math.max(0, i-4))} aria-label={t('actions.prev','Previous')} className="h-6 w-6 disabled:opacity-30">◀</Button>
+              <span>{slice.length} / {items.length} {t('forecast.hours','hours')}</span>
+              <Button variant="ghost" size="icon" disabled={scrollIndex+12>=items.length} onClick={()=> setScrollIndex(i=> Math.min(items.length-12, i+4))} aria-label={t('actions.next','Next')} className="h-6 w-6 disabled:opacity-30">▶</Button>
             </div>
           )}
           <div
@@ -172,7 +176,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
           <div aria-live="polite" className="sr-only" ref={announceRef} />
         </div>
       )}
-    </section>
+    </Card>
   )
 }
 

@@ -1,4 +1,5 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import './i18n' // initialize i18n
 import { RootLayout } from './components/layout/RootLayout'
 import { DashboardPage } from './pages/DashboardPage'
 import { StationsPage } from './pages/StationsPage'

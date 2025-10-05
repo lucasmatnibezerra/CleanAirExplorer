@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { ForecastPanel } from '../../sections/ForecastPanel'
+import { withI18n } from '../../test/test-i18n'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, findAllByRole } from '@testing-library/react'
 
 function renderWithClient(ui: React.ReactElement){
   const qc = new QueryClient()
-  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+  return render(<QueryClientProvider client={qc}>{withI18n(ui)}</QueryClientProvider>)
 }
 
 describe('ForecastPanel', () => {

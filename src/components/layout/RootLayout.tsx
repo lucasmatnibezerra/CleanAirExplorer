@@ -1,10 +1,14 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { Suspense, lazy, useState } from 'react'
-import { useEnterAnimation } from '@/hooks/useEnterAnimation'
+import { useEnterAnimation } from '../../hooks/useEnterAnimation'
 import { TopBar } from './TopBar'
+import { Icon } from '../ui/icons'
+import { Footer } from './Footer'
+import { useTranslation } from 'react-i18next'
 const StationDrawer = lazy(() => import('../stations/StationDrawer').then(m => ({ default: m.StationDrawer })))
 
 export function RootLayout() {
+  const { t } = useTranslation()
   const mainAnimRef = useEnterAnimation<HTMLDivElement>({ translateY: 12, duration: 640, opacityFrom: 0 });
   const [collapsed, setCollapsed] = useState(false)
   return (
@@ -13,21 +17,21 @@ export function RootLayout() {
       <div className="flex flex-1 overflow-hidden">
         <aside className={`group relative border-r border-border/60 bg-card/40 backdrop-blur-md p-4 hidden md:flex flex-col transition-[width] duration-300 ease-out ${collapsed ? 'w-16' : 'w-56'}`} aria-label="Sidebar navigation">
           <div className="flex items-center justify-between mb-4 text-sm font-semibold">
-            <span className={`transition-opacity duration-200 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>Navigation</span>
+            <span className={`transition-opacity duration-200 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>{t('nav.title','Navigation')}</span>
             <button
               onClick={() => setCollapsed(c => !c)}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               aria-pressed={collapsed}
               className="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground focus-visible:outline focus-visible:outline-accent"
             >
-              <span className={`i-tabler-${collapsed ? 'layout-sidebar-right-expand' : 'layout-sidebar-left-collapse'}`} />
+              {collapsed ? <Icon.chevronDown className="rotate-90 w-4 h-4" /> : <Icon.chevronDown className="-rotate-90 w-4 h-4" />}
             </button>
           </div>
           <nav className="space-y-1 text-sm flex-1" aria-label="Primary">
-            <SidebarLink to="/" end collapsed={collapsed} label="Dashboard" icon="chart-dots" />
-            <SidebarLink to="/stations" collapsed={collapsed} label="Stations" icon="building" />
-            <SidebarLink to="/settings" collapsed={collapsed} label="Settings" icon="settings" />
-            <SidebarLink to="/about" collapsed={collapsed} label="About" icon="info-circle" />
+            <SidebarLink to="/" end collapsed={collapsed} label={t('nav.map','Map')} icon="chart-dots" />
+            <SidebarLink to="/stations" collapsed={collapsed} label={t('nav.stations','Stations')} icon="building" />
+            <SidebarLink to="/settings" collapsed={collapsed} label={t('nav.forecast','Forecast')} icon="settings" />
+            <SidebarLink to="/about" collapsed={collapsed} label={t('nav.alerts','Alerts')} icon="info-circle" />
           </nav>
         </aside>
         <main ref={mainAnimRef} className="flex-1 overflow-y-auto px-4 py-4 md:py-6 will-change-transform">
@@ -38,9 +42,7 @@ export function RootLayout() {
           </div>
         </main>
       </div>
-      <footer className="text-xs text-center py-4 text-muted-foreground border-t border-border relative">
-        © {new Date().getFullYear()} Clean Air Explorer – Built for NASA Space Apps - By Pitiú das Galáxias
-      </footer>
+      <Footer />
       <Suspense fallback={null}>
         <StationDrawer />
       </Suspense>
@@ -56,7 +58,15 @@ interface SidebarLinkProps {
   collapsed: boolean
 }
 
+const iconMap: Record<string, React.ComponentType<any>> = {
+  'chart-dots': Icon.gauge,
+  'building': Icon.layers,
+  'settings': Icon.settings,
+  'info-circle': Icon.info,
+}
+
 function SidebarLink({ to, end, label, icon, collapsed }: SidebarLinkProps){
+  const IconComp = iconMap[icon] || Icon.info
   return (
     <NavLink
       to={to}
@@ -66,7 +76,7 @@ function SidebarLink({ to, end, label, icon, collapsed }: SidebarLinkProps){
       }
       title={collapsed ? label : undefined}
     >
-      <span className={`i-tabler-${icon} text-base`} />
+      <IconComp className="w-4 h-4" />
       <span className={`transition-opacity duration-150 ${collapsed ? 'opacity-0 pointer-events-none -ml-2' : 'opacity-100'}`}>{label}</span>
     </NavLink>
   )

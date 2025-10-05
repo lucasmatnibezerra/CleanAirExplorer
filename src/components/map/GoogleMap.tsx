@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { useStations } from '@/api/hooks'
-import { useAppStore } from '@/state/store'
+import { useStations } from '../../api/hooks'
+import { useAppStore } from '../../state/store'
 
 declare global {
   interface Window { initGMap?: () => void }

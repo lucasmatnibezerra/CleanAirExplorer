@@ -6,13 +6,17 @@ export function aqiColor(val: number){
   return '#7e22ce'
 }
 
-export function aqiCategory(val:number){
-  if(val<=50) return 'Good'
-  if(val<=100) return 'Moderate'
-  if(val<=150) return 'Unhealthy (SG)' // Sensitive groups
-  if(val<=200) return 'Unhealthy'
-  if(val<=300) return 'Very Unhealthy'
-  return 'Hazardous'
+export function aqiCategory(val:number, opts?: { key?: boolean }){
+  const key = (():string => {
+    if(val<=50) return 'aqi.good'
+    if(val<=100) return 'aqi.moderate'
+    if(val<=150) return 'aqi.unhealthySG'
+    if(val<=200) return 'aqi.unhealthy'
+    if(val<=300) return 'aqi.veryUnhealthy'
+    return 'aqi.hazardous'
+  })()
+  if(opts?.key) return key
+  return key // callers now expected to pass through t(key) externally
 }
 
 export function aqiBadgeClass(val:number){

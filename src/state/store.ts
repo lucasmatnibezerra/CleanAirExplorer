@@ -15,11 +15,13 @@ interface AppState {
   settings: SettingsState;
   selectedStationId: string | null;
   forecastHourIndex: number;
+  language: string;
   toggleLayer: (key:LayerKey) => void;
   setSelectedStation: (id: string | null) => void;
   updateSettings: (partial: Partial<SettingsState>) => void;
   setHomeLocation: (lat:number, lon:number) => void;
   setForecastHourIndex: (idx:number) => void;
+  setLanguage: (lang:string) => void;
 }
 
 const defaultLayers: LayerState[] = [
@@ -37,11 +39,13 @@ export const useAppStore = create<AppState>()(persist((set)=>({
   settings: defaultSettings,
   selectedStationId: null,
   forecastHourIndex: 0,
+  language: 'en',
   toggleLayer: (key) => set(s => ({
     layers: s.layers.map(l => l.key===key ? {...l, visible: !l.visible}: l)
   })),
   setSelectedStation: (id) => set({ selectedStationId: id }),
   updateSettings: (partial) => set(s => ({ settings: { ...s.settings, ...partial } })),
   setHomeLocation: (lat, lon) => set(s => ({ settings: { ...s.settings, homeLocation: {lat, lon} } })),
-  setForecastHourIndex: (idx) => set({ forecastHourIndex: idx })
+  setForecastHourIndex: (idx) => set({ forecastHourIndex: idx }),
+  setLanguage: (lang) => set({ language: lang })
 }), { name:'clean-air-app' }))

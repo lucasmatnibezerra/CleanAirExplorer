@@ -1,0 +1,144 @@
+{
+  "app": {
+    "title": "Clean Air Explorer",
+    "tagline": "Air quality intelligence from space + ground",
+    "demoBadge": "Demo"
+  },
+  "nav": {
+    "map": "Map",
+    "forecast": "Forecast",
+    "stations": "Stations",
+    "trends": "Trends",
+    "alerts": "Alerts"
+  },
+  "forecast": {
+    "title": "Hourly Forecast",
+    "aqi": "AQI",
+    "change": "Change",
+    "loading": "Loading forecast…",
+    "listAria": "Hourly AQI forecast"
+  },
+  "legend": {
+    "title": "AQI Legend",
+    "button": "Legend",
+    "layers": "Layers",
+    "aqiScale": "AQI Scale",
+    "sources": "Data sources: TEMPO (satellite), local stations (mock)"
+  },
+  "actions": {
+    "close": "Close",
+    "selectLanguage": "Language",
+    "enableAlerts": "Enable Alerts",
+    "alerts": "Alerts",
+    "chooseLayers": "Choose Layers",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "layout": {
+    "navigation": "Navigation",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "footer": {
+    "credit": "Built for NASA Space Apps",
+    "copyright": "© {{year}} Clean Air Explorer – Built for NASA Space Apps"
+  },
+  "map": {
+    "title": "Regional Air Quality Map",
+    "noLayers": "No layers active",
+    "noLayersHint": "Select layers or change time window.",
+    "loadingFallback": "Still loading… check network or CORS.",
+    "styleFailed": "Map style failed. Using fallback…",
+  "loading": "Loading map…",
+  "stillLoading": "Still loading… check network or API key.",
+  "failed": "Map failed to load.",
+    "layerToolbar": "Map data layers",
+    "toggleAqi": "Toggle AQI surface",
+    "toggleNo2": "Toggle nitrogen dioxide layer",
+    "toggleO3": "Toggle ozone layer",
+    "chooseLayersCta": "Choose Layers"
+  },
+  "dashboard": {
+    "title": "Air Quality Overview",
+    "subtitle": "Mock data — TEMPO + local network integration in progress.",
+    "currentAqi": "Current AQI",
+    "dominant": "Dominant",
+    "pollutant": "Pollutant",
+    "trend24h": "24h Trend",
+    "vsPrevHour": "vs prev hour",
+    "wind": "Wind",
+    "nowcast": "Nowcast"
+  },
+  "common": {
+    "stable": "Stable",
+    "rising": "Rising",
+    "falling": "Falling",
+    "loadingMap": "Loading map…",
+    "loadingAlerts": "Loading alerts…"
+  },
+  "notify": {
+    "granted": "Notifications enabled (mock subscription).",
+    "denied": "Notifications denied. Adjust in browser settings.",
+    "default": "Notification permission dismissed."
+  },
+  "about": {
+    "title": "About This Prototype",
+    "intro": "This UI prototype showcases a possible interface for integrating NASA TEMPO near real-time atmospheric composition data with ground monitoring networks (e.g., OpenAQ, Pandora) and weather feeds to produce localized air quality insights and alerts.",
+    "plannedSources": "Planned Data Sources",
+    "sourceTempo": "TEMPO Level 2 products (NO₂, O₃, HCHO, etc.)",
+    "sourceOpenAq": "OpenAQ aggregated station readings",
+    "sourcePandora": "Pandora / TolNet (where available)",
+    "sourceWx": "Global & regional weather model outputs (temperature, wind, PBL height)",
+    "roadmap": "Key Features Roadmap",
+    "featToggle": "Layer toggle (satellite columns vs ground AQI)",
+    "featFusion": "Model fusion forecast (collaboration with data/model team)",
+    "featHealth": "Health-based alert personalization",
+    "featTrends": "Historical trend exploration and anomaly detection",
+    "disclaimer": "All trademarks and data copyrights belong to their respective owners. This is not an official NASA product."
+  },
+  "settings": {
+    "title": "Settings",
+    "units": "Units",
+    "unitsMetric": "Metric (µg/m³)",
+    "unitsAqi": "US AQI",
+    "alertThreshold": "Alert Threshold (AQI)",
+    "homeLocation": "Home Location",
+    "notSet": "Not set",
+    "useGeo": "Use Geo",
+    "save": "Save",
+    "saved": "Saved!"
+  },
+  "station": {
+    "aqi": "AQI",
+    "pm25": "PM2.5",
+    "no2": "NO₂",
+    "mockRecent": "Mock recent points (PM2.5):",
+    "viewTrends": "View Trends →",
+    "bookmark": "☆ Bookmark",
+    "close": "Close"
+  },
+  "alerts": {
+    "info": "Info",
+    "moderate": "Moderate",
+    "unhealthy": "Unhealthy",
+    "title": "Health Alerts",
+    "viewGuidance": "View guidance",
+    "none": "No active alerts.",
+    "guidanceAria": "Health guidance",
+    "guidanceTitle": "Health Guidance (Demo)",
+    "guidance": {
+      "children": "Children: Limit prolonged outdoor exertion if AQI > 100.",
+      "older": "Older Adults: Prefer indoor activities when AQI > 150.",
+      "asthma": "Asthma: Keep rescue inhaler accessible; avoid heavy exercise."
+    }
+  },
+  "aqi": {
+    "good": "Good",
+    "moderate": "Moderate",
+    "unhealthySG": "Unhealthy (SG)",
+    "unhealthy": "Unhealthy",
+    "veryUnhealthy": "Very Unhealthy",
+    "hazardous": "Hazardous",
+    "noData": "No data"
+  }
+}

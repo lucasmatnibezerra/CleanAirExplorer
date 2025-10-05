@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { useCountUp } from '@/hooks/useCountUp'
-import { cn } from '@/lib/utils'
+import { useCountUp } from '../../hooks/useCountUp'
+import { cn } from '../../lib/utils'
 
 interface KpiCardProps {
   label: string
