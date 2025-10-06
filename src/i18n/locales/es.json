@@ -9,7 +9,8 @@
     "forecast": "Pronóstico",
     "stations": "Estaciones",
     "trends": "Tendencias",
-    "alerts": "Alertas"
+    "alerts": "Alertas",
+    "about": "Acerca"
   },
   "forecast": {
     "title": "Pronóstico por Hora",

@@ -9,7 +9,8 @@
     "forecast": "Forecast",
     "stations": "Stations",
     "trends": "Trends",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "about": "About"
   },
   "forecast": {
     "title": "Hourly Forecast",

@@ -64,7 +64,7 @@ export function TopBar(){
             <NavLink onClick={()=>setOpen(false)} to="/" end className={({isActive}) => mobileLink(isActive)}>{t('nav.map')}</NavLink>
             <NavLink onClick={()=>setOpen(false)} to="/stations" className={({isActive}) => mobileLink(isActive)}>{t('nav.stations')}</NavLink>
             <NavLink onClick={()=>setOpen(false)} to="/settings" className={({isActive}) => mobileLink(isActive)}>{t('nav.forecast')}</NavLink>
-            <NavLink onClick={()=>setOpen(false)} to="/about" className={({isActive}) => mobileLink(isActive)}>{t('nav.alerts')}</NavLink>
+            <NavLink onClick={()=>setOpen(false)} to="/about" className={({isActive}) => mobileLink(isActive)}>{t('nav.about', 'About')}</NavLink>
           </nav>
         </>
       )}

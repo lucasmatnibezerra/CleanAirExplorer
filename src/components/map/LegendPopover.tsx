@@ -50,8 +50,8 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[95]" onClick={()=> onOpenChange(false)} aria-hidden="true" />
-          <div ref={panelRef} id="map-legend-panel" role="dialog" aria-modal="true" aria-label="Map legend and layer toggles" className="fixed top-0 right-0 h-full w-80 md:w-72 overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 backdrop-blur px-5 pt-6 pb-8 shadow-xl space-y-6 text-[11px] z-[100] animate-in slide-in-from-right">
+          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[130]" onClick={()=> onOpenChange(false)} aria-hidden="true" />
+          <div ref={panelRef} id="map-legend-panel" role="dialog" aria-modal="true" aria-label="Map legend and layer toggles" className="fixed top-0 right-0 h-full w-80 md:w-72 overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 backdrop-blur px-5 pt-6 pb-8 shadow-xl space-y-6 text-[11px] z-[140] animate-in slide-in-from-right">
           <div>
             <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.layers','Layers')}</p>
             <ul className="space-y-1">

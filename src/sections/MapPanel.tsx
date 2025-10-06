@@ -1,5 +1,5 @@
 // Support dynamic provider selection via VITE_MAP_PROVIDER (google | maplibre)
-import { GoogleMap } from '../components/map/GoogleMap'
+import LeafletMap from '../components/map/LeafletMap'
 // Lazy import legacy MapLibre only if needed
 let LegacyMap: React.ComponentType<any> | null = null
 const provider = import.meta.env.VITE_MAP_PROVIDER || 'google'
@@ -111,8 +111,9 @@ export function MapPanel(){
             )}
           </div>
         )}
-        {provider === 'google' && (
-          <GoogleMap
+        {/* Default provider now uses LeafletMap (replaces GoogleMap) */}
+        {provider !== 'maplibre' && (
+          <LeafletMap
             onMapLoaded={handleMapLoaded}
             onMapError={(e)=> setMapError(e)}
           />

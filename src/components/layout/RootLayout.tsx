@@ -40,7 +40,7 @@ export function RootLayout() {
             <SidebarLink to="/" end collapsed={collapsed} label={t('nav.map','Map')} icon="chart-dots" />
             <SidebarLink to="/stations" collapsed={collapsed} label={t('nav.stations','Stations')} icon="building" />
             <SidebarLink to="/settings" collapsed={collapsed} label={t('nav.forecast','Forecast')} icon="settings" />
-            <SidebarLink to="/about" collapsed={collapsed} label={t('nav.alerts','Alerts')} icon="info-circle" />
+            <SidebarLink to="/about" collapsed={collapsed} label={t('nav.about','About')} icon="info-circle" />
           </nav>
         </aside>
         <main ref={mainAnimRef} className="flex-1 overflow-y-auto px-4 py-4 md:py-6 will-change-transform">

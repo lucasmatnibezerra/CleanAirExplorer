@@ -5,7 +5,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-  "types": ["vite/client", "vitest", "@testing-library/jest-dom", "@types/google.maps"],
+  "types": ["vite/client", "vitest", "@testing-library/jest-dom"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -28,5 +28,10 @@
     }
   },
   "include": ["src"],
-  "exclude": []
+  "exclude": [
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "node_modules",
+    "dist"
+  ]
 }

@@ -36,7 +36,7 @@ src/
 | Validation | `api/schemas.ts` | (Planned) Zod parsing for runtime safety |
 | AQI Logic | `lib/aqi.ts` | Category mapping, color & badge styling |
 | UI Panels | `sections/*Panel.tsx` | Encapsulated dashboard segments |
-| Map Integration | `components/map/GoogleMap.tsx` | Google Maps JS API (AdvancedMarkerElement) for stations (MapLibre legacy retained) |
+| Map Integration | `components/map/LeafletMap.tsx` | Leaflet (react-leaflet) with OSM tiles; implements stations as DOM markers, simple clustering, canvas heatmap and ozone forecast overlays. |
 
 ## 5. Data Contracts (Current & Planned)
 Current (mock):
@@ -118,7 +118,7 @@ Recommend conventional commits or minimal prefixes (feat:, fix:, chore:).
 | `VITE_TILE_BASE` | Base template for TEMPO tiles |
 | `VITE_DEFAULT_BBOX` | Initial map view extent |
 | `VITE_FEATURE_FLAGS` | Comma list (e.g. compare,wind) |
-| `VITE_GOOGLE_MAPS_KEY` | API key for Google Maps JS API (required for map) |
+| `VITE_GOOGLE_MAPS_KEY` | (deprecated) Previously used for Google Maps JS API. Not required after migrating to Leaflet. |
 | `VITE_MAP_PROVIDER` | `google` (default) or `maplibre` to switch map implementation |
 
 ## 14.1 Internationalization (i18n)
