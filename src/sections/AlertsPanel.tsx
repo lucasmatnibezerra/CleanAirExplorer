@@ -67,10 +67,10 @@ function severityMeta(sev: Alert["severity"], isDark: boolean) {
 export function AlertsPanel() {
   const { data, isLoading } = useAlerts();
   const [open, setOpen] = useState(false);
-  const isDark = useThemeMode();
-  if (isDark === null) return null;
+  const isDarkRaw = useThemeMode(); // pode ser null na primeira pintura
+  const isDark = !!isDarkRaw; // normaliza para boolean SEM retornar antes
 
-  // Mini-sparkline para estado vazio (apenas quando NÃO há alertas)
+  // Mini-sparkline para estado vazio
   const spark = useMemo(() => {
     if (!data || data.length > 0) return "";
     const mock = [20, 32, 28, 40, 36, 44, 50];

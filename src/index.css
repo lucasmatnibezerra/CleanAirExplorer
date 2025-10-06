@@ -61,6 +61,16 @@
   opacity: 1 !important;
 }
 
+/* evita scroll horizontal global */
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  overflow-x: hidden;
+}
+
 html {
   color-scheme: light;
 }

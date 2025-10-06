@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { requestNotificationPermission } from "@/notifications";
 import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
-import Logo from "@/assets/clean_air_logo.svg";
-// Se o projeto não tiver esse componente, remova a linha abaixo e o uso dele no JSX.
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import Logo from "@/assets/clean_air_logo.svg";
 
 export function TopBar({
   onToggleSidebar,
@@ -13,7 +12,7 @@ export function TopBar({
   onToggleSidebar: () => void;
   collapsed: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t } = useTranslation(); // <— i18n
   const [timestamp, setTimestamp] = useState<string>("");
 
   useEffect(() => {
@@ -30,8 +29,7 @@ export function TopBar({
   }, []);
 
   return (
-    <header className="relative z-40 border-b bg-card/60 backdrop-blur flex items-center px-4 h-14 gap-4">
-      {/* Toggle global: mobile e desktop */}
+    <header className="border-b bg-card/60 backdrop-blur flex items-center px-4 h-14 gap-4">
       <button
         className="inline-flex items-center justify-center w-9 h-9 rounded border border-border hover:bg-accent/60"
         aria-label={
@@ -39,17 +37,16 @@ export function TopBar({
             ? t("layout.expand", "Expand sidebar")
             : t("layout.collapse", "Collapse sidebar")
         }
+        onClick={onToggleSidebar}
         title={
           collapsed
             ? t("layout.expand", "Expand sidebar")
             : t("layout.collapse", "Collapse sidebar")
         }
-        onClick={onToggleSidebar}
       >
         {collapsed ? <SidebarOpenIcon /> : <SidebarCloseIcon />}
       </button>
 
-      {/* Marca / título */}
       <div className="flex items-center gap-2 select-none min-w-0">
         <img
           src={Logo}
@@ -61,26 +58,19 @@ export function TopBar({
           {t("app.title", "Clean Air Explorer")}
         </span>
         <span className="text-[10px] uppercase bg-indigo-600/70 text-white px-2 py-0.5 rounded border border-indigo-400/50 shrink-0">
-          Demo
+          {t("badges.demo", "Demo")}
         </span>
       </div>
 
-      {/* Local e hora (desktop+) */}
       <div className="hidden md:flex flex-col leading-tight text-[10px] text-muted-foreground">
-        <span>{t("app.mockLocation", "Belém, PA (mock location)")}</span>
+        <span>{t("topbar.mockLocation", "Belém, PA (mock location)")}</span>
         <span className="text-foreground/70">
-          {t("app.updated", "Updated")} {timestamp}
+          {t("topbar.updated", "Updated {{time}}", { time: timestamp })}
         </span>
       </div>
 
-      {/* Ações à direita */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Se não tiver LanguageSwitcher, remova a linha abaixo */}
-        <LanguageSwitcher />
-
-        <DarkModeToggle />
-
-        {/* Enable Alerts: ícone apenas (mantém handler original) */}
+        <LanguageSwitcher /> {/* <— seu componente; mantém todos os idiomas */}
         <button
           className="inline-flex items-center justify-center w-9 h-9 rounded border border-border hover:bg-accent/60"
           aria-label={t("actions.enableAlerts", "Enable alerts")}
@@ -89,6 +79,7 @@ export function TopBar({
         >
           <BellIcon />
         </button>
+        <DarkModeToggle />
       </div>
     </header>
   );
@@ -96,19 +87,15 @@ export function TopBar({
 
 async function handleEnableAlerts() {
   const status = await requestNotificationPermission();
-  if (status === "granted") {
-    alert("Notifications enabled (mock subscription).");
-  } else if (status === "denied") {
+  if (status === "granted") alert("Notifications enabled (mock subscription).");
+  else if (status === "denied")
     alert("Notifications denied. You can adjust this in browser settings.");
-  } else {
-    alert("Notification permission dismissed.");
-  }
+  else alert("Notification permission dismissed.");
 }
 
-/* ==== Ícones inline (não dependem de libs externas) ==== */
+// Ícones locais
 function SidebarCloseIcon() {
-  // “colapsar” (seta para a esquerda)
-  return (
+  /* (igual a antes) */ return (
     <svg
       viewBox="0 0 24 24"
       width="18"
@@ -124,8 +111,7 @@ function SidebarCloseIcon() {
   );
 }
 function SidebarOpenIcon() {
-  // “expandir” (seta para a direita)
-  return (
+  /* (igual a antes) */ return (
     <svg
       viewBox="0 0 24 24"
       width="18"
@@ -141,7 +127,7 @@ function SidebarOpenIcon() {
   );
 }
 function BellIcon() {
-  return (
+  /* (igual a antes) */ return (
     <svg
       viewBox="0 0 24 24"
       width="18"

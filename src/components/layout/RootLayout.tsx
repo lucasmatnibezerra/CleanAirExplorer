@@ -1,9 +1,9 @@
+// src/components/layout/RootLayout.tsx
 import { Outlet, NavLink } from "react-router-dom";
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useState } from "react";
 import { useEnterAnimation } from "@/hooks/useEnterAnimation";
 import { TopBar } from "./TopBar";
 import { useTranslation } from "react-i18next";
-import { Icon } from "../ui/icons"; // <- remova esta linha e o iconMap se não existir
 
 const StationDrawer = lazy(() =>
   import("../stations/StationDrawer").then((m) => ({
@@ -13,134 +13,76 @@ const StationDrawer = lazy(() =>
 
 export function RootLayout() {
   const { t } = useTranslation();
-
   const mainAnimRef = useEnterAnimation<HTMLDivElement>({
     translateY: 12,
     duration: 640,
     opacityFrom: 0,
   });
 
-  // 🧠 Persistência do estado da sidebar (master)
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    const stored = localStorage.getItem("sidebar:collapsed");
-    return stored === "1";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("sidebar:collapsed", collapsed ? "1" : "0");
-    }
-  }, [collapsed]);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors overflow-x-hidden">
       <TopBar
         collapsed={collapsed}
         onToggleSidebar={() => setCollapsed((v) => !v)}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* 📐 Sidebar: animação suave do HEAD + persistência do master */}
+      <div className="flex flex-1 overflow-hidden relative z-0">
         <aside
-          aria-label="Sidebar navigation"
+          aria-label={t("layout.navigation", "Navigation")}
           aria-expanded={!collapsed}
           className={[
-            // base visual
-            "relative border-r border-border bg-card/60 backdrop-blur",
-            // animação suave
+            "relative shrink-0 border-r border-border bg-card/60 backdrop-blur",
             "transition-[width,transform,opacity] duration-300 ease-in-out will-change-[width,transform,opacity]",
-            // altura total abaixo da topbar (h-14 = 56px)
             "h-[calc(100vh-56px)]",
-            // layout interno
             "flex flex-col",
-            // largura e visibilidade no mobile:
-            //  - mobile colapsado: some com translate (suave)
-            //  - mobile expandido: w-48
             collapsed
               ? "w-0 -translate-x-full opacity-0"
               : "w-48 translate-x-0 opacity-100",
-            // no desktop nunca some; alterna largura (ícones-only vs expandida)
             collapsed
               ? "md:w-12 md:translate-x-0 md:opacity-100"
               : "md:w-52 md:translate-x-0 md:opacity-100",
           ].join(" ")}
         >
-          {/* Cabeçalho da sidebar com botão de colapsar (master) */}
-          <div className="flex items-center justify-between px-3 py-3 border-b border-border">
-            <span
-              className={`text-[11px] font-semibold tracking-wide uppercase text-muted-foreground transition-opacity ${
-                collapsed ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
-            >
-              {t("layout.navigation", "Navigation")}
-            </span>
-            <button
-              onClick={() => setCollapsed((c) => !c)}
-              aria-label={
-                collapsed
-                  ? t("layout.expand", "Expand sidebar")
-                  : t("layout.collapse", "Collapse sidebar")
-              }
-              aria-pressed={collapsed}
-              className="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-accent/60 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-accent"
-              title={
-                collapsed
-                  ? t("layout.expand", "Expand sidebar")
-                  : t("layout.collapse", "Collapse sidebar")
-              }
-            >
-              {/* usando o sistema de ícones do master; troque por um SVG se não tiver */}
-              {collapsed ? (
-                <Icon.chevronDown className="rotate-90 w-4 h-4" />
-              ) : (
-                <Icon.chevronDown className="-rotate-90 w-4 h-4" />
-              )}
-            </button>
-          </div>
-
-          {/* Navegação */}
-          <nav
-            className="p-2 space-y-1 text-sm md:overflow-y-visible overflow-y-auto"
-            aria-label="Primary"
-          >
+          <nav className="p-2 space-y-1 text-sm md:overflow-y-visible overflow-y-auto">
             <SidebarLink
               to="/"
-              end
-              collapsed={collapsed}
               label={t("nav.dashboard", "Dashboard")}
-              icon="gauge"
-            />
-            <SidebarLink
-              to="/trends"
+              icon={<DashboardIcon />}
               collapsed={collapsed}
-              label={t("nav.trends", "Trends")}
-              icon="chart"
+              end
             />
+            {/* <SidebarLink
+              to="/trends"
+              label={t("nav.trends", "Trends")}
+              icon={<TrendsIcon />}
+              collapsed={collapsed}
+            /> */}
             <SidebarLink
               to="/stations"
-              collapsed={collapsed}
               label={t("nav.stations", "Stations")}
-              icon="layers"
+              icon={<StationsIcon />}
+              collapsed={collapsed}
             />
             <SidebarLink
               to="/settings"
-              collapsed={collapsed}
               label={t("nav.settings", "Settings")}
-              icon="settings"
+              icon={<SettingsIcon />}
+              collapsed={collapsed}
             />
             <SidebarLink
               to="/about"
-              collapsed={collapsed}
               label={t("nav.about", "About")}
-              icon="info"
+              icon={<InfoIcon />}
+              collapsed={collapsed}
             />
           </nav>
         </aside>
 
-        {/* Conteúdo */}
         <main
           ref={mainAnimRef}
-          className="min-w-0 flex-1 overflow-auto px-3 sm:px-6 py-4"
+          className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-6 py-4"
         >
           <Suspense fallback={null}>
             <StationDrawer />
@@ -150,52 +92,23 @@ export function RootLayout() {
           </div>
         </main>
       </div>
-
-      {/* Descomente se quiser rodapé do master */}
-      {/* <Footer /> */}
     </div>
   );
 }
 
-/* ===== Navegação: suporta tanto icon string (Icon system) quanto ReactNode ===== */
-
-type SidebarLinkProps =
-  | {
-      to: string;
-      end?: boolean;
-      label: string;
-      collapsed: boolean;
-      icon: keyof typeof iconMap; // quando usar o sistema de ícones
-    }
-  | {
-      to: string;
-      end?: boolean;
-      label: string;
-      collapsed: boolean;
-      icon: React.ReactNode; // quando quiser passar um SVG inline
-    };
-
-// Mapa de ícones do master (ajuste os nomes conforme seu Icon system)
-const iconMap = {
-  gauge: Icon?.gauge,
-  chart: Icon?.chartDots ?? Icon?.chart, // fallback
-  layers: Icon?.layers,
-  settings: Icon?.settings,
-  info: Icon?.info,
-} as const;
-
-function SidebarLink(props: SidebarLinkProps) {
-  const { to, end, label, collapsed } = props;
-
-  let IconComp: React.ReactNode = null;
-  if (typeof (props as any).icon === "string") {
-    const key = (props as any).icon as keyof typeof iconMap;
-    const Cmp = iconMap[key];
-    IconComp = Cmp ? <Cmp className="w-4 h-4" /> : null;
-  } else {
-    IconComp = <span className="shrink-0">{(props as any).icon}</span>;
-  }
-
+function SidebarLink({
+  to,
+  label,
+  icon,
+  collapsed,
+  end,
+}: {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  collapsed: boolean;
+  end?: boolean;
+}) {
   return (
     <NavLink
       to={to}
@@ -211,7 +124,7 @@ function SidebarLink(props: SidebarLinkProps) {
       }
       title={collapsed ? label : undefined}
     >
-      {IconComp}
+      <span className="shrink-0">{icon}</span>
       <span
         className={`whitespace-nowrap transition-[opacity,margin] duration-200 min-w-0 ${
           collapsed ? "opacity-0 -ml-2 pointer-events-none" : "opacity-100"
@@ -220,5 +133,88 @@ function SidebarLink(props: SidebarLinkProps) {
         {label}
       </span>
     </NavLink>
+  );
+}
+
+function DashboardIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="4" />
+      <rect x="14" y="10" width="7" height="11" />
+      <rect x="3" y="12" width="7" height="9" />
+    </svg>
+  );
+}
+function TrendsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <polyline points="3,17 9,11 13,15 21,7" />
+      <circle cx="21" cy="7" r="1" />
+      <circle cx="13" cy="15" r="1" />
+      <circle cx="9" cy="11" r="1" />
+      <circle cx="3" cy="17" r="1" />
+    </svg>
+  );
+}
+function StationsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M12 21s6-4.35 6-9a6 6 0 1 0-12 0c0 4.65 6 9 6 9z" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+function SettingsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.07a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.07a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.07a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.39 1.26 1 1.51H21a2 2 0 0 1 0 4h-.07c-.7.25-1.2.85-1.53 1.49z" />
+    </svg>
+  );
+}
+function InfoIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+      <line x1="11" y1="12" x2="13" y2="12" />
+      <line x1="12" y1="12" x2="12" y2="16" />
+    </svg>
   );
 }
