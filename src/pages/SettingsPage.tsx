@@ -1,14 +1,20 @@
+// src/pages/SettingsPage.tsx
 import { useAppStore } from "../state/store";
 import { useGeolocation } from "../api/geolocation";
 import { useState, useEffect } from "react";
 import { useThemeMode } from "../hooks/useThemeMode";
+import { useTranslation } from "react-i18next";
 
 export function SettingsPage() {
+  const { t } = useTranslation();
+
   const settings = useAppStore((s) => s.settings);
   const update = useAppStore((s) => s.updateSettings);
   const setHome = useAppStore((s) => s.setHomeLocation);
+
   const [units, setUnits] = useState(settings.units);
   const [threshold, setThreshold] = useState(settings.alertThreshold);
+
   const geo = useGeolocation(false);
   const isDark = useThemeMode();
 
@@ -19,7 +25,7 @@ export function SettingsPage() {
 
   function save() {
     update({ units, alertThreshold: threshold });
-    alert("Saved!");
+    alert(t("settings.saved", "Saved!"));
   }
 
   function setGeo() {
@@ -31,13 +37,17 @@ export function SettingsPage() {
   const inputClass = isDark
     ? "bg-slate-800/60 ring-1 ring-slate-700/50"
     : "bg-white ring-1 ring-gray-200";
-  const buttonClass = isDark
+
+  const buttonNeutral = isDark
     ? "bg-slate-700 hover:bg-slate-600 text-white"
     : "bg-gray-100 hover:bg-gray-200 text-gray-900";
 
   return (
     <div className="space-y-4 max-w-xl">
-      <h1 className="text-xl font-semibold text-foreground">Settings</h1>
+      <h1 className="text-xl font-semibold">
+        {t("settings.title", "Settings")}
+      </h1>
+
       <form
         className="space-y-4 text-sm"
         onSubmit={(e) => {
@@ -45,21 +55,27 @@ export function SettingsPage() {
           save();
         }}
       >
+        {/* Units */}
         <div>
-          <label className="block font-medium mb-1">Units</label>
+          <label className="block font-medium mb-1">
+            {t("settings.units", "Units")}
+          </label>
           <select
             value={units}
             onChange={(e) => setUnits(e.target.value as any)}
             className={`${inputClass} rounded px-3 py-2 w-full`}
           >
-            <option value="METRIC">Metric (µg/m³)</option>
-            <option value="AQI">US AQI</option>
+            <option value="METRIC">
+              {t("settings.unitsMetric", "Metric (µg/m³)")}
+            </option>
+            <option value="AQI">{t("settings.unitsAqi", "US AQI")}</option>
           </select>
         </div>
 
+        {/* Alert Threshold */}
         <div>
           <label className="block font-medium mb-1">
-            Alert Threshold (AQI)
+            {t("settings.alertThreshold", "Alert Threshold (AQI)")}
           </label>
           <input
             type="number"
@@ -69,8 +85,11 @@ export function SettingsPage() {
           />
         </div>
 
+        {/* Home Location */}
         <div>
-          <label className="block font-medium mb-1">Home Location</label>
+          <label className="block font-medium mb-1">
+            {t("settings.homeLocation", "Home Location")}
+          </label>
           <div className="flex gap-2 items-center">
             <input
               readOnly
@@ -81,25 +100,26 @@ export function SettingsPage() {
                     )}, ${settings.homeLocation.lon.toFixed(2)}`
                   : ""
               }
-              placeholder="Not set"
+              placeholder={t("settings.notSet", "Not set")}
               className={`flex-1 ${inputClass} rounded px-3 py-2`}
             />
             <button
               type="button"
               onClick={setGeo}
-              className={`px-3 py-2 rounded ${buttonClass}`}
+              className={`px-3 py-2 rounded ${buttonNeutral}`}
             >
-              Use Geo
+              {t("settings.useGeo", "Use Geo")}
             </button>
           </div>
         </div>
 
+        {/* Submit */}
         <div className="pt-2">
           <button
             type="submit"
             className="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded text-white"
           >
-            Save
+            {t("settings.save", "Save")}
           </button>
         </div>
       </form>

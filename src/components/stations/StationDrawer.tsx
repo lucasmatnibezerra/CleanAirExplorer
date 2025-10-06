@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetCl
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { aqiBadgeClass, aqiCategory, aqiColor } from '../../lib/aqi'
+import { useTranslation } from 'react-i18next'
 
 export function StationDrawer(){
   const stationId = useAppStore(s => s.selectedStationId)
@@ -13,6 +14,7 @@ export function StationDrawer(){
   const { data: stations } = useStations()
   const station = stations?.find(s => s.id === stationId)
   const { data: historical } = useHistoricalSeries(stationId, 'PM2.5')
+  const { t } = useTranslation()
   useEffect(()=>{/* placeholder for future side-effects */}, [stationId])
   return (
     <Sheet open={!!station} onOpenChange={(open)=> !open && setSelected(null)}>
@@ -22,17 +24,17 @@ export function StationDrawer(){
             <SheetHeader className="text-left space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <SheetTitle>{station.name}</SheetTitle>
-                <Badge variant="outline" className={aqiBadgeClass(station.latestAQI)}>{aqiCategory(station.latestAQI)}</Badge>
+                <Badge variant="outline" className={aqiBadgeClass(station.latestAQI)}>{t(aqiCategory(station.latestAQI, {key:true}) as string)}</Badge>
               </div>
               <SheetDescription className="text-xs">{station.location.lat.toFixed(2)}, {station.location.lon.toFixed(2)}</SheetDescription>
             </SheetHeader>
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
-              <Metric label="AQI" value={station.latestAQI.toString()} color={aqiColor(station.latestAQI)} />
-              <Metric label="PM2.5" value={(12+Math.random()*15).toFixed(1)} />
-              <Metric label="NO₂" value={(15+Math.random()*20).toFixed(0)} />
+              <Metric label={t('station.aqi','AQI')} value={station.latestAQI.toString()} color={aqiColor(station.latestAQI)} />
+              <Metric label={t('station.pm25','PM2.5')} value={(12+Math.random()*15).toFixed(1)} />
+              <Metric label={t('station.no2','NO₂')} value={(15+Math.random()*20).toFixed(0)} />
             </div>
             <div className="text-xs space-y-1 overflow-auto">
-              <p className="text-muted-foreground">Mock recent points (PM2.5):</p>
+              <p className="text-muted-foreground">{t('station.mockRecent','Mock recent points (PM2.5):')}</p>
               <div className="flex gap-1 flex-wrap">
                 {historical?.points.slice(-12).map(p => (
                   <span key={p.ts} className="px-1 py-0.5 rounded bg-muted text-muted-foreground/90">{p.value}</span>
@@ -40,11 +42,11 @@ export function StationDrawer(){
               </div>
             </div>
             <div className="mt-auto flex justify-between text-xs pt-2 border-t border-border/60">
-              <Link to={`/trends?station=${station.id}`} className="text-primary hover:underline">View Trends →</Link>
+              <Link to={`/trends?station=${station.id}`} className="text-primary hover:underline">{t('station.viewTrends','View Trends →')}</Link>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={()=> alert('Bookmark (mock)')}>☆ Bookmark</Button>
+                <Button variant="ghost" size="sm" onClick={()=> alert('Bookmark (mock)')}>{t('station.bookmark','☆ Bookmark')}</Button>
                 <SheetClose asChild>
-                  <Button variant="ghost" size="sm">Close</Button>
+                  <Button variant="ghost" size="sm">{t('station.close','Close')}</Button>
                 </SheetClose>
               </div>
             </div>

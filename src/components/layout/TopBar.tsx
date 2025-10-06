@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { requestNotificationPermission } from "@/notifications";
 import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
 import Logo from "@/assets/clean_air_logo.svg";
+// Se o projeto não tiver esse componente, remova a linha abaixo e o uso dele no JSX.
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export function TopBar({
   onToggleSidebar,
@@ -10,6 +13,7 @@ export function TopBar({
   onToggleSidebar: () => void;
   collapsed: boolean;
 }) {
+  const { t } = useTranslation();
   const [timestamp, setTimestamp] = useState<string>("");
 
   useEffect(() => {
@@ -26,16 +30,26 @@ export function TopBar({
   }, []);
 
   return (
-    <header className="border-b bg-card/60 backdrop-blur flex items-center px-4 h-14 gap-4">
+    <header className="relative z-40 border-b bg-card/60 backdrop-blur flex items-center px-4 h-14 gap-4">
+      {/* Toggle global: mobile e desktop */}
       <button
         className="inline-flex items-center justify-center w-9 h-9 rounded border border-border hover:bg-accent/60"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={
+          collapsed
+            ? t("layout.expand", "Expand sidebar")
+            : t("layout.collapse", "Collapse sidebar")
+        }
+        title={
+          collapsed
+            ? t("layout.expand", "Expand sidebar")
+            : t("layout.collapse", "Collapse sidebar")
+        }
         onClick={onToggleSidebar}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? <SidebarOpenIcon /> : <SidebarCloseIcon />}
       </button>
 
+      {/* Marca / título */}
       <div className="flex items-center gap-2 select-none min-w-0">
         <img
           src={Logo}
@@ -44,29 +58,37 @@ export function TopBar({
           loading="lazy"
         />
         <span className="font-semibold tracking-wide text-primary truncate">
-          Clean Air Explorer
+          {t("app.title", "Clean Air Explorer")}
         </span>
         <span className="text-[10px] uppercase bg-indigo-600/70 text-white px-2 py-0.5 rounded border border-indigo-400/50 shrink-0">
           Demo
         </span>
       </div>
 
+      {/* Local e hora (desktop+) */}
       <div className="hidden md:flex flex-col leading-tight text-[10px] text-muted-foreground">
-        <span>Belém, PA (mock location)</span>
-        <span className="text-foreground/70">Updated {timestamp}</span>
+        <span>{t("app.mockLocation", "Belém, PA (mock location)")}</span>
+        <span className="text-foreground/70">
+          {t("app.updated", "Updated")} {timestamp}
+        </span>
       </div>
 
+      {/* Ações à direita */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Se não tiver LanguageSwitcher, remova a linha abaixo */}
+        <LanguageSwitcher />
+
+        <DarkModeToggle />
+
+        {/* Enable Alerts: ícone apenas (mantém handler original) */}
         <button
           className="inline-flex items-center justify-center w-9 h-9 rounded border border-border hover:bg-accent/60"
-          aria-label="Enable alerts"
-          title="Enable alerts"
+          aria-label={t("actions.enableAlerts", "Enable alerts")}
+          title={t("actions.enableAlerts", "Enable alerts")}
           onClick={handleEnableAlerts}
         >
           <BellIcon />
         </button>
-
-        <DarkModeToggle />
       </div>
     </header>
   );
@@ -83,7 +105,9 @@ async function handleEnableAlerts() {
   }
 }
 
+/* ==== Ícones inline (não dependem de libs externas) ==== */
 function SidebarCloseIcon() {
+  // “colapsar” (seta para a esquerda)
   return (
     <svg
       viewBox="0 0 24 24"
@@ -99,8 +123,8 @@ function SidebarCloseIcon() {
     </svg>
   );
 }
-
 function SidebarOpenIcon() {
+  // “expandir” (seta para a direita)
   return (
     <svg
       viewBox="0 0 24 24"
@@ -116,7 +140,6 @@ function SidebarOpenIcon() {
     </svg>
   );
 }
-
 function BellIcon() {
   return (
     <svg

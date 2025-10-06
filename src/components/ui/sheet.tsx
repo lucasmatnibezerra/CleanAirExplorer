@@ -1,3 +1,4 @@
+// Consolidated shadcn-style Sheet component (removed earlier duplicate implementation)
 import * as React from 'react';
 import { cn } from '../../lib/utils';
 import {

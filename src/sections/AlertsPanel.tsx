@@ -1,5 +1,6 @@
+// src/sections/AlertsPanel.tsx
 import { useAlerts } from "../api/hooks";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useThemeMode } from "../hooks/useThemeMode";
 import type { Alert } from "../api/types";
@@ -30,7 +31,7 @@ function severityMeta(sev: Alert["severity"], isDark: boolean) {
       wrap: "bg-slate-100 border-slate-300",
       chip: "bg-slate-200 text-slate-800 border-slate-400",
     },
-  };
+  } as const;
 
   const dark = {
     info: {
@@ -57,10 +58,10 @@ function severityMeta(sev: Alert["severity"], isDark: boolean) {
       wrap: "bg-slate-800/40 border-slate-600/40",
       chip: "bg-slate-500/20 text-slate-300 border-slate-500/40",
     },
-  };
+  } as const;
 
   const palette = isDark ? dark : light;
-  return palette[sev] || palette.default;
+  return (palette as any)[sev] || palette.default;
 }
 
 export function AlertsPanel() {
@@ -69,12 +70,28 @@ export function AlertsPanel() {
   const isDark = useThemeMode();
   if (isDark === null) return null;
 
+  // Mini-sparkline para estado vazio (apenas quando NÃO há alertas)
+  const spark = useMemo(() => {
+    if (!data || data.length > 0) return "";
+    const mock = [20, 32, 28, 40, 36, 44, 50];
+    const min = Math.min(...mock);
+    const max = Math.max(...mock);
+    const span = Math.max(1, max - min);
+    return mock
+      .map((v, i) => {
+        const x = (i / (mock.length - 1)) * 100;
+        const y = 30 - ((v - min) / span) * 30;
+        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  }, [data]);
+
   return (
     <section
       className={`rounded-xl border bg-card p-4 backdrop-blur transition-colors duration-300 ${
         isDark
           ? "ring-slate-700/50 bg-slate-800/60"
-          : "ring-slate-200 bg-slate-80 shadow-sm"
+          : "ring-slate-200 shadow-sm"
       }`}
     >
       <h2
@@ -141,11 +158,54 @@ export function AlertsPanel() {
 
         {data?.length === 0 && (
           <li
-            className={`text-xs ${
-              isDark ? "text-slate-400" : "text-slate-600"
+            className={`p-4 rounded border flex flex-col gap-3 ${
+              isDark
+                ? "border-slate-600 bg-slate-900/30"
+                : "border-slate-300 bg-slate-50"
             }`}
           >
-            No active alerts.
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p
+                  className={`text-xs font-medium ${
+                    isDark ? "text-slate-300" : "text-slate-700"
+                  }`}
+                >
+                  No active alerts.
+                </p>
+                <p
+                  className={`text-[11px] ${
+                    isDark ? "text-slate-300/90" : "text-slate-600/90"
+                  }`}
+                >
+                  Review general guidance to prepare for potential changes in
+                  air quality.
+                </p>
+              </div>
+              {spark && (
+                <svg viewBox="0 0 100 30" className="w-24 h-8">
+                  <path
+                    d={spark}
+                    fill="none"
+                    stroke="#38bdf8"
+                    strokeWidth={1}
+                    className="opacity-60"
+                  />
+                </svg>
+              )}
+            </div>
+            <div>
+              <button
+                onClick={() => setOpen(true)}
+                className={`text-[11px] px-2 py-1.5 rounded font-medium focus-visible:outline focus-visible:outline-sky-400 ${
+                  isDark
+                    ? "bg-sky-600/80 hover:bg-sky-500 text-white"
+                    : "bg-sky-500 hover:bg-sky-400 text-white"
+                }`}
+              >
+                View guidance
+              </button>
+            </div>
           </li>
         )}
       </ul>
@@ -158,9 +218,9 @@ export function AlertsPanel() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
           <div
-            className={`absolute inset-0 ${
+            className={`${
               isDark ? "bg-slate-900/70" : "bg-slate-300/70"
-            } backdrop-blur-sm`}
+            } absolute inset-0 backdrop-blur-sm`}
             onClick={() => setOpen(false)}
           />
           <div

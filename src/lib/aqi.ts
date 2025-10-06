@@ -1,18 +1,48 @@
 export function aqiColor(val: number) {
-  if (val <= 50) return "#22c55e";
-  if (val <= 100) return "#eab308";
-  if (val <= 150) return "#f97316";
-  if (val <= 200) return "#dc2626";
-  return "#7e22ce";
+  if (val <= 50) return "#22c55e"; // green-500
+  if (val <= 100) return "#eab308"; // yellow-500
+  if (val <= 150) return "#f97316"; // orange-500
+  if (val <= 200) return "#dc2626"; // red-600
+  return "#7e22ce"; // purple-700
 }
 
-export function aqiCategory(val: number) {
-  if (val <= 50) return "Good";
-  if (val <= 100) return "Moderate";
-  if (val <= 150) return "Unhealthy (SG)"; // Sensitive groups
-  if (val <= 200) return "Unhealthy";
-  if (val <= 300) return "Very Unhealthy";
-  return "Hazardous";
+export type AqiCategoryKey =
+  | "aqi.good"
+  | "aqi.moderate"
+  | "aqi.unhealthySG"
+  | "aqi.unhealthy"
+  | "aqi.veryUnhealthy"
+  | "aqi.hazardous";
+
+function aqiKey(val: number): AqiCategoryKey {
+  if (val <= 50) return "aqi.good";
+  if (val <= 100) return "aqi.moderate";
+  if (val <= 150) return "aqi.unhealthySG"; // Sensitive groups
+  if (val <= 200) return "aqi.unhealthy";
+  if (val <= 300) return "aqi.veryUnhealthy";
+  return "aqi.hazardous";
+}
+
+function aqiLabelFromKey(key: AqiCategoryKey): string {
+  switch (key) {
+    case "aqi.good":
+      return "Good";
+    case "aqi.moderate":
+      return "Moderate";
+    case "aqi.unhealthySG":
+      return "Unhealthy (SG)";
+    case "aqi.unhealthy":
+      return "Unhealthy";
+    case "aqi.veryUnhealthy":
+      return "Very Unhealthy";
+    case "aqi.hazardous":
+      return "Hazardous";
+  }
+}
+export function aqiCategory(val: number, opts?: { key?: boolean }): string {
+  const key = aqiKey(val);
+  if (opts?.key) return key;
+  return aqiLabelFromKey(key);
 }
 
 export function aqiBadgeClass(val: number): string {

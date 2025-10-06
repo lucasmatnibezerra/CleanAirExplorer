@@ -119,6 +119,94 @@ Recommend conventional commits or minimal prefixes (feat:, fix:, chore:).
 | `VITE_DEFAULT_BBOX` | Initial map view extent |
 | `VITE_FEATURE_FLAGS` | Comma list (e.g. compare,wind) |
 | `VITE_GOOGLE_MAPS_KEY` | API key for Google Maps JS API (required for map) |
+| `VITE_MAP_PROVIDER` | `google` (default) or `maplibre` to switch map implementation |
+
+## 14.1 Internationalization (i18n)
+
+The UI supports three languages:
+
+| Code | Language | File |
+|------|----------|------|
+| en | English | `src/i18n/locales/en.json` |
+| pt | Português | `src/i18n/locales/pt.json` |
+| es | Español | `src/i18n/locales/es.json` |
+
+Implementation notes:
+1. Library: `i18next` + `react-i18next` initialized in `src/i18n/index.ts`.
+2. Auto-detect: If no stored preference, the browser language (primary subtag) is used when supported.
+3. Persistence: Selected language stored in Zustand (`language`) and mirrored to `localStorage` key `lang`.
+4. Switcher: `LanguageSwitcher` component in `src/components/i18n/LanguageSwitcher.tsx`.
+5. Usage: Import `useTranslation()` and access `t('namespace.key')` (flat `translation` namespace).
+6. Tests: A lightweight isolated i18n instance for tests lives in `src/test/test-i18n.tsx`.
+7. Accessibility: The switcher has an accessible label (screen-reader only text).
+
+Add a new language:
+1. Create `src/i18n/locales/<code>.json`.
+2. Add entry to `LANGS` array in `src/i18n/index.ts`.
+3. Provide translations for existing keys; missing keys fall back to English.
+4. (Optional) Update README table above.
+
+Key coverage (initial): app title, navigation labels, forecast panel title, legend title, generic actions.
+
+## 14.2 Design System & UI Primitives
+
+The interface now standardizes on lightweight shadcn-style headless primitives layered over Tailwind tokens. Components live under `src/components/ui/` and intentionally stay minimal, exposing variants & sizes via simple prop contracts (no runtime styling library overhead).
+
+Current primitives:
+| Component | File | Purpose | Key Props |
+|-----------|------|---------|-----------|
+| Button | `ui/button.tsx` | Actions / triggers | `variant: primary | secondary | ghost | outline | danger`, `size: sm | md | icon` |
+| Badge | `ui/badge.tsx` | Status/category label | `variant: outline | success | warning | danger` |
+| Card | `ui/card.tsx` | Panel container | (children) |
+| Select | `ui/select.tsx` | Language & option picking (Radix) | Inherits Radix props |
+| Sheet | `ui/sheet.tsx` | Mobile navigation drawer (Radix Dialog) | `side: left|right|top|bottom` |
+| Icons | `ui/icons.tsx` | Central lucide-react mapping | `Icon.name` components |
+
+Design tokens derive from Tailwind CSS (dark-first palette). Opacity overlays + `backdrop-blur` provide layered depth on dark backgrounds without heavy drop shadows.
+
+### Variants & Consistency
+Buttons intentionally restrict palette to semantic roles; color accent is reused to reduce cognitive load. Badges use subtle backgrounds for non-critical states and stronger hues for success/warning/danger.
+
+### Accessibility Alignment
+- All interactive primitives forward refs for focus management.
+- `focus-visible` styles provide clear outlines independent of color-only cues.
+- Drawer (`Sheet`) uses proper aria-hidden sequencing via Radix Dialog.
+
+## 14.3 Icons Migration
+
+Icons replaced legacy Tabler CSS classes with `lucide-react` components for tree-shakable, consistent SVGs. Mapping is centralized in `ui/icons.tsx` so changes or aliasing are one-line updates.
+
+| Old (Tabler class) | New (lucide) |
+|--------------------|--------------|
+| `i-tabler-menu-2` | `Icon.menu` |
+| `i-tabler-chart-dots` | `Icon.gauge` |
+| `i-tabler-building` | `Icon.layers` (placeholder until a station icon is added) |
+| `i-tabler-settings` | `Icon.settings` |
+| `i-tabler-info-circle` | `Icon.info` |
+| `i-tabler-chevron-down` | `Icon.chevronDown` |
+| `i-tabler-check` | `Icon.check` |
+
+Rationale: reduce global CSS icon font dependency, improve a11y (titles/aria can be attached directly), and allow per-icon sizing control.
+
+## 14.4 Responsive Layout Enhancements
+
+- Desktop: Persistent sidebar with collapse toggle (`chevronDown` rotated). Width animates between `w-56` and `w-16`.
+- Mobile: Floating action button opens a `Sheet` sliding from the left with navigation links.
+ - (Update) The prototype originally used both a header hamburger button and a floating FAB to open navigation on mobile. For clarity and to avoid duplicate focus targets, the floating FAB sheet trigger has been removed; only the single TopBar hamburger now controls the mobile inline menu.
+- Panels (Map, Forecast) are Card-based; stacking / spacing controlled via container `space-y-6`.
+- Map panel height reduces on very small screens (`h-[380px]` base with potential future dynamic sizing). Further fine tuning can be added when real-time tiles land.
+
+Planned refinements: prefer CSS container queries to tune font scale, and lazy mount off-screen panels for perf.
+
+### 14.4.1 Recent i18n Additions
+New translation keys were added for improved accessibility and clarity:
+```
+actions.openMenu / actions.closeMenu
+map.toggleAqi / map.toggleNo2 / map.toggleO3
+map.layersToolbar / map.chooseLayersCta
+```
+If you add further layers or actions, follow the flat key convention (`section.actionVerb`).
+
 
 ## 15. Caching & Performance (Backend Concept)
 Layered cache: (1) Redis metadata/time series; (2) Filesystem tile cache keyed by `tempo:{product}:{time}:{z}:{x}:{y}`; (3) In-memory LRU for hot tiles. Conditional ETag + max-age=600 for short-term validity. Recompute only on new TEMPO overpass or data revision.
@@ -163,6 +251,61 @@ Open a short issue or checklist PR. Keep scope slices small: one panel enhanceme
 3. Forecast horizon extension (beyond 48h) worth complexity now?
 4. Need offline fallback or static “last known” tiles?
 5. Health guidance localization / multilingual requirements?
+
+## 22. Ozone Forecast Grid (Prototype Layer)
+
+The prototype introduces an experimental ozone forecast visualization layer driven by a lightweight grid manifest + `.npy` hourly files. This enables rapid client-side prototyping without a backend service.
+
+### 22.1 Manifest Format
+Location: `public/data/ozone/manifest.json`
+
+Example:
+```json
+{
+  "version": 1,
+  "variable": "ozone_ppb",
+  "unit": "ppb",
+  "grid": { "lat_min": -60, "lat_max": 60, "lon_min": -130, "lon_max": -30, "rows": 240, "cols": 400 },
+  "hours": [ { "index":0, "file":"ozone_h00.npy", "timestamp":"2025-10-05T00:00:00Z" } ],
+  "attribution": "Prototype placeholder manifest for ozone forecast visualization"
+}
+```
+
+Each `.npy` file MUST be a little‑endian float32 2D array (`rows x cols`). Values represent ozone mixing ratio in ppb at the corresponding grid cell center (uniform lat/lon spacing implied).
+
+### 22.2 Loader API
+Implemented in `src/data/ozoneLoader.ts`:
+```ts
+loadManifest(): Promise<OzoneManifest>
+getOzoneGrid(hourIndex:number): Promise<{ meta: OzoneGridMeta; data: Float32Array }>
+getOzoneValue(lat:number, lon:number, hourIndex:number): Promise<{ value:number|null }>
+clearOzoneCache(): void
+```
+Interpolation: Bilinear in grid space. Out‑of‑bounds returns `null`.
+
+### 22.3 Map Integration
+The layer key `ozone_forecast` (Zustand store) toggles a canvas overlay rendered in `GoogleMap.tsx`. Rendering strategy:
+1. On toggle ON, fetch selected hour grid via `getOzoneGrid(forecastHourIndex)`.
+2. Sample projected screen pixels on an 8px step, inverse project to lat/lon using Google Maps projection.
+3. Bilinear sample ozone value; map value (0–120+ ppb) to a perceptual gradient (blue → magenta → red) with alpha blending (`multiply` blend mode) so station / AQI overlays remain discernible.
+4. Re-render on map `idle` events or forecast hour change.
+
+### 22.4 Performance Notes
+- Manifest & hour arrays cached in memory (`Promise` cache) to prevent duplicate fetches.
+- 8px sampling step keeps worst‑case fill operations < ~ (width * height)/64.
+- Further optimization: dynamic step size based on zoom (future).
+
+### 22.5 Replacing with Real Data
+When backend is ready, swap `.npy` fetch logic for a `/forecast/ozone?hour=` endpoint returning a binary (e.g., flat Float32Array or Zstandard-compressed) + separate JSON grid metadata. The current API surface can remain stable.
+
+### 22.6 Testing
+`ozone-forecast-toggle.test.tsx` asserts the layer toggle button updates `aria-pressed` and store visibility state.
+
+### 22.7 Roadmap Enhancements
+- Adaptive color scale with legend ramp & numeric min/max.
+- Temporal tweening between consecutive hours for smooth playback.
+- Web Worker off-thread colorization & optional WebGL path.
+- Data provenance panel listing source model + initialization cycle.
 
 ---
 **Contact / Coordination:** Use project discussion board or tag the data pipeline lead for endpoint contract changes.

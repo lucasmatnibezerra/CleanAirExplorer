@@ -1,0 +1,150 @@
+{
+  "app": {
+    "title": "Explorador de Aire Limpio",
+    "tagline": "Inteligencia de calidad del aire desde el espacio y tierra",
+    "demoBadge": "Demo"
+  },
+  "nav": {
+    "map": "Mapa",
+    "forecast": "Pronóstico",
+    "stations": "Estaciones",
+    "trends": "Tendencias",
+    "alerts": "Alertas"
+  },
+  "forecast": {
+    "title": "Pronóstico por Hora",
+    "aqi": "ICA",
+    "change": "Cambio",
+    "loading": "Cargando pronóstico…",
+    "listAria": "Pronóstico horario de ICA"
+  },
+  "legend": {
+    "title": "Leyenda ICA",
+    "button": "Leyenda",
+    "layers": "Capas",
+    "aqiScale": "Escala ICA",
+  "sources": "Fuentes: TEMPO (satélite), estaciones locales (simulado)",
+  "ozoneForecast": "Pronóstico de Ozono",
+  "ozoneForecastHint": "ppb (gradiente prototipo; mayor = ozono elevado)"
+  ,"ozoneRange": "Rango"
+  },
+  "actions": {
+    "close": "Cerrar",
+    "selectLanguage": "Idioma",
+    "enableAlerts": "Activar Alertas",
+    "alerts": "Alertas",
+    "chooseLayers": "Elegir Capas",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  },
+  "layout": {
+    "navigation": "Navegación",
+    "collapse": "Colapsar barra lateral",
+    "expand": "Expandir barra lateral"
+  },
+  "footer": {
+    "credit": "Construido para NASA Space Apps",
+    "copyright": "© {{year}} Explorador de Aire Limpio – Construido para NASA Space Apps"
+  },
+  "map": {
+    "title": "Mapa Regional de Calidad del Aire",
+    "noLayers": "Sin capas activas",
+    "noLayersHint": "Seleccione capas o cambie la ventana temporal.",
+    "loadingFallback": "Cargando aún… verifique red o CORS.",
+    "styleFailed": "Fallo de estilo del mapa. Usando fallback…",
+  "loading": "Cargando mapa…",
+  "stillLoading": "Sigue cargando… revise red o clave API.",
+  "failed": "Error al cargar el mapa.",
+    "layerToolbar": "Capas del mapa",
+    "toggleAqi": "Alternar superficie AQI",
+    "toggleNo2": "Alternar capa de dióxido de nitrógeno",
+    "toggleO3": "Alternar capa de ozono",
+    "toggleHeatmap": "Alternar mapa de calor AQI",
+  "toggleOzoneForecast": "Alternar capa de pronóstico de ozono",
+    "chooseLayersCta": "Elegir Capas"
+  },
+  "dashboard": {
+    "title": "Resumen de Calidad del Aire",
+    "subtitle": "Datos simulados — integración de red local + TEMPO en progreso.",
+    "currentAqi": "AQI Actual",
+    "dominant": "Dominante",
+    "pollutant": "Contaminante",
+    "trend24h": "Tendencia 24h",
+    "vsPrevHour": "vs hora previa",
+    "wind": "Viento",
+    "nowcast": "Ahora"
+  },
+  "common": {
+    "stable": "Estable",
+    "rising": "Subiendo",
+    "falling": "Bajando",
+    "loadingMap": "Cargando mapa…",
+    "loadingAlerts": "Cargando alertas…"
+  },
+  "notify": {
+    "granted": "Notificaciones habilitadas (suscripción simulada).",
+    "denied": "Notificaciones denegadas. Ajuste en la configuración del navegador.",
+    "default": "Permiso de notificación descartado."
+  },
+  "about": {
+    "title": "Acerca de Este Prototipo",
+    "intro": "Este prototipo de UI muestra una posible interfaz para integrar datos casi en tiempo real de composición atmosférica de TEMPO de la NASA con redes de monitoreo en tierra (p.ej., OpenAQ, Pandora) y datos meteorológicos para producir información y alertas locales de calidad del aire.",
+    "plannedSources": "Fuentes de Datos Planeadas",
+    "sourceTempo": "Productos TEMPO Nivel 2 (NO₂, O₃, HCHO, etc.)",
+    "sourceOpenAq": "Lecturas agregadas de estaciones OpenAQ",
+    "sourcePandora": "Pandora / TolNet (cuando disponible)",
+    "sourceWx": "Salidas de modelos meteorológicos globales y regionales (temperatura, viento, altura PBL)",
+    "roadmap": "Hoja de Ruta de Funcionalidades",
+    "featToggle": "Alternar capas (columnas satelitales vs AQI de superficie)",
+    "featFusion": "Pronóstico de fusión de modelos (colaboración con equipo de datos/modelo)",
+    "featHealth": "Personalización de alertas basadas en salud",
+    "featTrends": "Exploración de tendencias históricas y detección de anomalías",
+    "disclaimer": "Todas las marcas y derechos pertenecen a sus respectivos dueños. No es un producto oficial de la NASA."
+  },
+  "settings": {
+    "title": "Configuración",
+    "units": "Unidades",
+    "unitsMetric": "Métrico (µg/m³)",
+    "unitsAqi": "US AQI",
+    "alertThreshold": "Umbral de Alerta (AQI)",
+    "homeLocation": "Ubicación Inicial",
+    "notSet": "No definido",
+    "useGeo": "Usar Geo",
+    "save": "Guardar",
+    "saved": "¡Guardado!"
+  },
+  "station": {
+    "aqi": "AQI",
+    "pm25": "PM2.5",
+    "no2": "NO₂",
+    "mockRecent": "Puntos recientes simulados (PM2.5):",
+    "viewTrends": "Ver Tendencias →",
+    "bookmark": "☆ Favorito",
+    "close": "Cerrar"
+  },
+  "alerts": {
+    "info": "Info",
+    "moderate": "Moderado",
+    "unhealthy": "No saludable",
+    "title": "Alertas de Salud",
+    "viewGuidance": "Ver guía",
+    "none": "Sin alertas activas.",
+    "guidanceAria": "Guía de salud",
+    "guidanceTitle": "Guía de Salud (Demo)",
+    "guidance": {
+      "children": "Niños: Limiten esfuerzo físico prolongado si AQI > 100.",
+      "older": "Adultos Mayores: Prefieran actividades interiores si AQI > 150.",
+      "asthma": "Asma: Mantenga inhalador de rescate accesible; evite ejercicio intenso."
+    },
+    "emptyCtaHint": "Revise la guía general para prepararse ante posibles cambios en la calidad del aire."
+  },
+  "aqi": {
+    "good": "Bueno",
+    "moderate": "Moderado",
+    "unhealthySG": "No saludable (GS)",
+    "unhealthy": "No saludable",
+    "veryUnhealthy": "Muy no saludable",
+    "hazardous": "Peligroso",
+    "noData": "Sin datos"
+  }
+}

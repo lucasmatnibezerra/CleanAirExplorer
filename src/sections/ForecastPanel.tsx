@@ -1,7 +1,7 @@
+// src/sections/ForecastPanel.tsx
 import { useForecast } from "../api/hooks";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../state/store";
-// import { Skeleton } from "../components/ui/Skeleton";
 import { Badge } from "../components/ui/badge";
 import { aqiBadgeClass, aqiCategory, aqiColor } from "../lib/aqi";
 import { useThemeMode } from "../hooks/useThemeMode";
@@ -9,23 +9,15 @@ import { useThemeMode } from "../hooks/useThemeMode";
 export function ForecastPanel({ compact = false }: { compact?: boolean }) {
   const { data, isLoading } = useForecast();
   const isDark = useThemeMode();
+
   const [scrollIndex, setScrollIndex] = useState(0);
+
   const hourIndex = useAppStore((s) => s.forecastHourIndex);
   const setHourIndex = useAppStore((s) => s.setForecastHourIndex);
+
   const hours = data?.hours ?? [];
 
-  const activeItemRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (activeItemRef.current) {
-      activeItemRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
-      });
-    }
-  }, [hourIndex]);
-
+  // Mapeia itens + delta e categoria (schema original do HEAD)
   const items = useMemo(() => {
     return hours.map((h, i) => {
       const prev = i > 0 ? hours[i - 1] : null;
@@ -42,19 +34,84 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
     });
   }, [hours]);
 
-  const slice = compact ? items.slice(scrollIndex, scrollIndex + 12) : items;
   const current = items[hourIndex];
   const currentDelta = current?.delta ?? 0;
   const deltaArrow = currentDelta === 0 ? "→" : currentDelta > 0 ? "↑" : "↓";
 
-  const sparkColor = isDark ? "#38bdf8" : "hsl(var(--primary))";
-  const trendClasses =
-    currentDelta === 0
-      ? "text-muted-foreground border-border"
-      : isDark
-      ? "text-sky-300 border-sky-600"
-      : "text-primary border-primary/50";
+  // Lista exibida (paginada no modo compacto)
+  const slice = compact ? items.slice(scrollIndex, scrollIndex + 12) : items;
 
+  // Focus/scroll para o item ativo (HEAD)
+  const activeItemRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (activeItemRef.current) {
+      activeItemRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [hourIndex]);
+
+  // A11y announcer (branch)
+  const announceRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (current && announceRef.current) {
+      announceRef.current.textContent = `${current.hour}:00 AQI ${
+        current.aqi
+      } ${current.category}${
+        currentDelta !== 0
+          ? currentDelta > 0
+            ? " rising " + currentDelta
+            : " falling " + Math.abs(currentDelta)
+          : ""
+      }`;
+    }
+  }, [current, currentDelta]);
+
+  // Navegação por teclado (branch)
+  const focusHour = useCallback(
+    (idx: number) => {
+      if (idx < 0 || idx >= items.length) return;
+      setHourIndex(idx);
+    },
+    [items.length, setHourIndex]
+  );
+  const onKey = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!items.length) return;
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          focusHour(hourIndex + 1);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          focusHour(hourIndex - 1);
+          break;
+        case "Home":
+          e.preventDefault();
+          focusHour(0);
+          break;
+        case "End":
+          e.preventDefault();
+          focusHour(items.length - 1);
+          break;
+        case "PageUp":
+          e.preventDefault();
+          focusHour(Math.max(0, hourIndex - 6));
+          break;
+        case "PageDown":
+          e.preventDefault();
+          focusHour(Math.min(items.length - 1, hourIndex + 6));
+          break;
+      }
+    },
+    [focusHour, hourIndex, items.length]
+  );
+
+  // Sparkline (HEAD, com cor por tema)
+  const sparkColor = isDark ? "#38bdf8" : "hsl(var(--primary))";
   const sparklinePath = useMemo(() => {
     if (items.length < 2) return "";
     const values = items.map((i) => i.aqi);
@@ -81,8 +138,28 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
     return 24 - ((current.aqi - min) / span) * 24;
   }, [items, current]);
 
+  // Ticks sob o slider (branch)
+  const ticks = useMemo(() => {
+    if (!items.length) return [] as number[];
+    const lastHour = items[items.length - 1].hour;
+    const base = [0, 6, 12, 18];
+    const arr = base.filter((h) => h <= lastHour);
+    if (!arr.includes(lastHour)) arr.push(lastHour);
+    return arr;
+  }, [items]);
+
+  const trendClasses =
+    currentDelta === 0
+      ? "text-muted-foreground border-border"
+      : isDark
+      ? "text-sky-300 border-sky-600"
+      : "text-primary border-primary/50";
+
   return (
     <section className="rounded-xl border bg-card p-4">
+      {/* announcer A11y */}
+      <div aria-live="polite" className="sr-only" ref={announceRef} />
+
       <div className="flex items-start justify-between mb-2 gap-4">
         <div>
           <h2 className="font-semibold text-foreground leading-snug">
@@ -91,6 +168,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
           <p className="text-[10px] text-muted-foreground">
             Hour {hourIndex + 1} / {items.length}
           </p>
+
           {sparklinePath && (
             <svg
               viewBox="0 0 100 24"
@@ -105,7 +183,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
               />
               {current && (
                 <circle
-                  cx={(hourIndex / (items.length - 1)) * 100}
+                  cx={(hourIndex / Math.max(1, items.length - 1)) * 100}
                   cy={currentSparkY}
                   r="3"
                   fill={sparkColor}
@@ -114,6 +192,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
             </svg>
           )}
         </div>
+
         {current && (
           <div className="flex flex-col items-end gap-1">
             <Badge className={aqiBadgeClass(current.aqi)}>
@@ -121,6 +200,14 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
             </Badge>
             <span
               className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${trendClasses}`}
+              aria-label="trend"
+              title={
+                currentDelta === 0
+                  ? "Stable"
+                  : currentDelta > 0
+                  ? "Rising"
+                  : "Falling"
+              }
             >
               <span>{deltaArrow}</span>
               <span>
@@ -134,13 +221,15 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
       </div>
 
       {!isLoading && items.length > 0 && (
-        <div className={compact ? "space-y-2" : ""}>
+        <div className={compact ? "space-y-2" : ""} onKeyDown={onKey}>
+          {/* paginação do modo compacto (branch) */}
           {compact && (
-            <div className="flex justify-between text-[10px] text-muted-foreground">
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground gap-2">
               <button
+                className="h-6 w-6 rounded hover:bg-accent/50 disabled:opacity-30"
                 disabled={scrollIndex === 0}
                 onClick={() => setScrollIndex((i) => Math.max(0, i - 4))}
-                className="disabled:opacity-30"
+                aria-label="Previous"
               >
                 ◀
               </button>
@@ -148,22 +237,25 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
                 {slice.length} / {items.length} hours
               </span>
               <button
+                className="h-6 w-6 rounded hover:bg-accent/50 disabled:opacity-30"
                 disabled={scrollIndex + 12 >= items.length}
                 onClick={() =>
                   setScrollIndex((i) => Math.min(items.length - 12, i + 4))
                 }
-                className="disabled:opacity-30"
+                aria-label="Next"
               >
                 ▶
               </button>
             </div>
           )}
 
+          {/* lista horizontal de horas (HEAD), com roles/a11y do branch */}
           <div
             className={`flex gap-2 overflow-x-auto text-xs relative py-1 ${
               isDark ? "bg-slate-800/60 p-1 rounded-lg" : "bg-transparent"
             }`}
             role="listbox"
+            aria-label="Hourly AQI forecast"
           >
             {slice.map((h) => {
               const globalIndex = items.findIndex((x) => x.ts === h.ts);
@@ -179,7 +271,7 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
                   className={`relative flex-shrink-0 w-20 flex flex-col items-center rounded-lg px-2 py-2 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                     active
                       ? isDark
-                        ? "bg-slate-700  shadow-md"
+                        ? "bg-slate-700 shadow-md"
                         : "bg-gray-300 shadow-sm"
                       : "bg-transparent hover:bg-gray-100 dark:hover:bg-white/5"
                   }`}
@@ -204,17 +296,32 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
             })}
           </div>
 
-          <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+          {/* slider com ticks (branch) */}
+          <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground relative">
             <span>0h</span>
-            <input
-              type="range"
-              min={0}
-              max={items.length - 1}
-              value={hourIndex}
-              onChange={(e) => setHourIndex(+e.target.value)}
-              className="flex-1"
-            />
-            <span>{items.length - 1}h</span>
+            <div className="relative flex-1">
+              <input
+                aria-label="Hourly AQI forecast"
+                type="range"
+                min={0}
+                max={Math.max(0, items.length - 1)}
+                value={hourIndex}
+                onChange={(e) => setHourIndex(+e.target.value)}
+                className="w-full"
+              />
+              <div className="absolute inset-x-0 top-4 flex justify-between text-[9px] text-foreground/60 pointer-events-none select-none">
+                {ticks.map((h) => (
+                  <span
+                    key={h}
+                    style={{ transform: "translateX(-50%)" }}
+                    className="relative left-1/2"
+                  >
+                    {h}h
+                  </span>
+                ))}
+              </div>
+            </div>
+            <span>{Math.max(0, items.length - 1)}h</span>
           </div>
         </div>
       )}
