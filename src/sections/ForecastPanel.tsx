@@ -183,11 +183,14 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }){
             <div className="relative flex-1">
               <input aria-label={t('forecast.listAria','Hourly AQI forecast')} type="range" min={0} max={items.length-1} value={hourIndex} onChange={e=> setHourIndex(+e.target.value)} className="w-full" />
               <div className="absolute inset-x-0 top-4 flex justify-between text-[9px] text-slate-500 pointer-events-none select-none">
-                {ticks.map(h => (
-                  <span key={h} style={{transform:'translateX(-50%)'}} className="relative left-1/2">
-                    {h}h
-                  </span>
-                ))}
+                {ticks.map(h => {
+                  const position = items.length > 1 ? (h / (items.length - 1)) * 100 : 0
+                  return (
+                    <span key={h} style={{position: 'absolute', left: `${position}%`, transform: 'translateX(-50%)'}}>
+                      {h}h
+                    </span>
+                  )
+                })}
               </div>
             </div>
             <span>{items.length-1}h</span>
