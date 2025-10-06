@@ -93,9 +93,8 @@ async function handleEnableAlerts() {
   else alert("Notification permission dismissed.");
 }
 
-// Ícones locais
 function SidebarCloseIcon() {
-  /* (igual a antes) */ return (
+  return (
     <svg
       viewBox="0 0 24 24"
       width="18"
@@ -111,7 +110,7 @@ function SidebarCloseIcon() {
   );
 }
 function SidebarOpenIcon() {
-  /* (igual a antes) */ return (
+  return (
     <svg
       viewBox="0 0 24 24"
       width="18"
@@ -127,7 +126,7 @@ function SidebarOpenIcon() {
   );
 }
 function BellIcon() {
-  /* (igual a antes) */ return (
+  return (
     <svg
       viewBox="0 0 24 24"
       width="18"

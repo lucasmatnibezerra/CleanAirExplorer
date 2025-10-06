@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useStations } from "../../api/hooks";
-import { getOzoneGrid } from "../../data/ozoneLoader";
-import { useAppStore } from "../../state/store";
+import { useStations } from "@/api/hooks";
+import { useAppStore } from "@/state/store";
+import { getOzoneGrid } from "@/data/ozoneLoader"; // se não existir, remova esta linha e o bloco de O3
 
 declare global {
   interface Window {
     initGMap?: () => void;
+    __ozoneRangeReady?: Promise<any>;
+    __ozoneRangeResolve?: (v: any) => void;
   }
 }
 
@@ -14,104 +16,111 @@ export interface GoogleMapProps {
   onMapError?: (err: unknown) => void;
 }
 
-// TODO(feature-flag): optionally allow switching back to MapLibre via an env flag (e.g. VITE_MAP_PROVIDER)
+// TODO(feature-flag): permitir trocar para MapLibre via env (ex.: VITE_MAP_PROVIDER)
 export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapObj = useRef<google.maps.Map | null>(null);
+
+  // marcadores (pontos) e “clusters” (tbm AdvancedMarkerElement, só agrupados)
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clusterRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+
   const [zoom, setZoom] = useState<number>(4);
+
   const { data: stations } = useStations();
-  const showStations = useAppStore(
-    (s) => s.layers.find((l) => l.key === "stations")?.visible
-  );
-  const showHeatmap = useAppStore(
-    (s) => s.layers.find((l) => l.key === "aqi_heatmap")?.visible
-  );
-  const showOzoneForecast = useAppStore(
-    (s) => s.layers.find((l) => l.key === "ozone_forecast")?.visible
-  );
-  const hourIndex = useAppStore((s) => s.forecastHourIndex);
+
+  const showStations =
+    useAppStore((s) => s.layers.find((l) => l.key === "stations")?.visible) ??
+    false;
+
+  const showHeatmap =
+    useAppStore(
+      (s) => s.layers.find((l) => l.key === "aqi_heatmap")?.visible
+    ) ?? false;
+
+  const showOzoneForecast =
+    useAppStore(
+      (s) => s.layers.find((l) => l.key === "ozone_forecast")?.visible
+    ) ?? false;
+
+  const hourIndex = useAppStore((s) => s.forecastHourIndex ?? 0);
   const setSelected = useAppStore((s) => s.setSelectedStation);
 
-  // Inject Google Maps script lazily (idempotent)
+  // Carrega Google Maps script 1x (idempotente)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if ((window as any).google?.maps) {
-      // script already loaded; initialize if needed
-      if (!mapObj.current && mapRef.current) {
-        mapObj.current = new google.maps.Map(mapRef.current, {
-          center: { lat: 38, lng: -95 }, // continental US centroid approximation
-          zoom: 4,
-          mapId: "clean_air_dark",
-        });
-        mapObj.current.addListener("zoom_changed", () => {
-          const z = mapObj.current?.getZoom() || 4;
-          setZoom(z);
-        });
-        onMapLoaded?.();
-      }
+
+    const ready = (w: any) => !!w.google?.maps;
+
+    const initMap = () => {
+      if (!mapRef.current || mapObj.current) return;
+      mapObj.current = new google.maps.Map(mapRef.current, {
+        center: { lat: 38, lng: -95 }, // approx. CONUS
+        zoom: 4,
+        mapId: "clean_air_dark",
+        // gestureHandling: "greedy",
+        // disableDefaultUI: true,
+      });
+      mapObj.current.addListener("zoom_changed", () => {
+        const z = mapObj.current?.getZoom() ?? 4;
+        setZoom(z);
+      });
+      onMapLoaded?.();
+    };
+
+    if (ready(window)) {
+      initMap();
       return;
     }
+
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
     if (!apiKey) {
       console.warn(
-        "[GoogleMap] Missing VITE_GOOGLE_MAPS_KEY env; map will attempt unauthenticated load (may fail)."
+        "[GoogleMap] Missing VITE_GOOGLE_MAPS_KEY; trying unauthenticated load (may fail)."
       );
     }
-    const scriptId = "google-maps-script";
-    if (document.getElementById(scriptId)) return;
+    const id = "google-maps-script";
+    if (document.getElementById(id)) return; // outro componente pode ter injetado
+
     const script = document.createElement("script");
-    script.id = scriptId;
+    script.id = id;
     script.src = `https://maps.googleapis.com/maps/api/js?key=${
       apiKey || ""
     }&callback=initGMap&libraries=marker`;
     script.async = true;
     script.onerror = (e) => onMapError?.(e);
+
     window.initGMap = () => {
       try {
-        if (!mapRef.current) return;
-        mapObj.current = new google.maps.Map(mapRef.current, {
-          center: { lat: 38, lng: -95 },
-          zoom: 4,
-          mapId: "clean_air_dark",
-        });
-        mapObj.current.addListener("zoom_changed", () => {
-          const z = mapObj.current?.getZoom() || 4;
-          setZoom(z);
-        });
-        onMapLoaded?.();
+        initMap();
       } catch (err) {
         onMapError?.(err);
       }
     };
+
     document.head.appendChild(script);
     return () => {
-      // We intentionally do NOT remove the script to allow fast remounts
+      // não removemos o script p/ remounts rápidos
       delete window.initGMap;
     };
   }, [onMapLoaded, onMapError]);
 
-  // Render / update station markers OR clustered markers based on zoom
+  // Render/atualiza marcadores (ou clusters) de estações
   useEffect(() => {
-    if (!mapObj.current) {
-      return;
-    }
+    if (!mapObj.current) return;
 
-    // Clear previous markers if stations hidden or list changes drastically
-    markersRef.current.forEach((m) => {
-      (m as any).map = null;
-    });
+    // limpar anteriores
+    markersRef.current.forEach((m) => ((m as any).map = null));
     markersRef.current = [];
-    clusterRef.current.forEach((m) => {
-      (m as any).map = null;
-    });
+    clusterRef.current.forEach((m) => ((m as any).map = null));
     clusterRef.current = [];
 
     if (!stations || !showStations) return;
-    const useClusters = zoom < 6; // threshold
+
+    const useClusters = zoom < 6; // threshold simples
+
     if (useClusters) {
-      // Simple grid cluster (1° buckets) – low fidelity but avoids dependency
+      // cluster grosso de grade 1° (evita dependência externa)
       const bucket: Record<
         string,
         { count: number; aqiSum: number; lat: number; lon: number }
@@ -120,13 +129,14 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
         const key = `${Math.round(st.location.lat)}:${Math.round(
           st.location.lon
         )}`;
-        if (!bucket[key])
+        if (!bucket[key]) {
           bucket[key] = {
             count: 0,
             aqiSum: 0,
             lat: st.location.lat,
             lon: st.location.lon,
           };
+        }
         bucket[key].count++;
         bucket[key].aqiSum += st.latestAQI;
       }
@@ -134,7 +144,7 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
         const avg = Math.round(c.aqiSum / c.count);
         const div = document.createElement("div");
         div.className =
-          "rounded-full text-[11px] font-bold px-2 py-1 shadow ring-2 ring-white/40";
+          "rounded-full text-[11px] font-bold px-2 py-0.5 shadow ring-2 ring-white/40";
         const color =
           avg <= 50
             ? "#22c55e"
@@ -147,7 +157,8 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
             : "#7e22ce";
         div.style.background = color;
         div.style.color = "#fff";
-        div.textContent = `${avg}` + (c.count > 1 ? ` (${c.count})` : "");
+        div.textContent = `${avg}${c.count > 1 ? ` (${c.count})` : ""}`;
+
         const marker = new google.maps.marker.AdvancedMarkerElement({
           map: mapObj.current!,
           position: { lat: c.lat, lng: c.lon },
@@ -158,11 +169,12 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
       });
       return;
     }
-    // Individual markers
+
+    // marcadores individuais
     for (const st of stations) {
       const div = document.createElement("div");
       div.className =
-        "rounded-full text-[10px] font-semibold px-2 py-1 shadow ring-1 ring-white/40";
+        "rounded-full text-[10px] font-semibold px-2 py-0.5 shadow ring-1 ring-white/40";
       const color =
         st.latestAQI <= 50
           ? "#22c55e"
@@ -176,6 +188,7 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
       div.style.background = color;
       div.style.color = "#fff";
       div.textContent = String(st.latestAQI);
+
       const marker = new google.maps.marker.AdvancedMarkerElement({
         map: mapObj.current!,
         position: { lat: st.location.lat, lng: st.location.lon },
@@ -183,12 +196,12 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
         title: st.name,
       });
       div.addEventListener("click", () => setSelected(st.id));
-      marker.addListener("click", () => setSelected(st.id));
+      marker.addEventListener("click", () => setSelected(st.id));
       markersRef.current.push(marker);
     }
   }, [stations, showStations, setSelected, zoom]);
 
-  // Simple heatmap via canvas sampling inverse-distance weighting of station AQI
+  // Heatmap AQI (canvas) — IDW simplificado
   useEffect(() => {
     if (!mapObj.current) return;
     const existing = document.getElementById(
@@ -199,55 +212,59 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
       return;
     }
     if (!stations || stations.length === 0) return;
+
     let canvas = existing;
     if (!canvas) {
       canvas = document.createElement("canvas");
       canvas.id = "aqi-heatmap-layer";
-      canvas.style.position = "absolute";
-      canvas.style.top = "0";
-      canvas.style.left = "0";
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-      canvas.style.pointerEvents = "none";
-      canvas.style.mixBlendMode = "screen";
+      Object.assign(canvas.style, {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        mixBlendMode: "screen",
+      } as CSSStyleDeclaration);
       mapRef.current?.appendChild(canvas);
     }
-    function render() {
-      if (!canvas || !mapObj.current) return;
-      const rect = mapRef.current!.getBoundingClientRect();
+
+    const render = () => {
+      if (!canvas || !mapObj.current || !mapRef.current) return;
+      const rect = mapRef.current.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
       const ctx = canvas.getContext("2d")!;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const proj = (lat: number, lng: number) => {
+
+      const projSys = (mapObj.current as any).getProjection?.();
+      if (!projSys) return;
+
+      const scale = Math.pow(2, mapObj.current!.getZoom() || 4);
+      const center = projSys.fromLatLngToPoint(mapObj.current!.getCenter()!);
+
+      const currentZoom = mapObj.current!.getZoom() || 4;
+      const step =
+        currentZoom < 5 ? 32 : currentZoom < 7 ? 24 : currentZoom < 9 ? 16 : 12;
+
+      const project = (lat: number, lng: number) => {
         const pt = new google.maps.LatLng(lat, lng);
-        const scale = Math.pow(2, mapObj.current!.getZoom() || 4);
-        const projSys = (mapObj.current as any).getProjection?.();
-        if (!projSys) {
-          return { x: -9999, y: -9999 };
-        }
         const world = projSys.fromLatLngToPoint(pt);
-        const center = projSys.fromLatLngToPoint(mapObj.current!.getCenter()!);
         const x = (world.x - center.x) * scale * 256 + canvas.width / 2;
         const y = (world.y - center.y) * scale * 256 + canvas.height / 2;
         return { x, y };
       };
-      // Adaptive sampling step based on zoom (coarser when zoomed out for performance)
-      const currentZoom = mapObj.current!.getZoom() || 4;
-      const step =
-        currentZoom < 5 ? 32 : currentZoom < 7 ? 24 : currentZoom < 9 ? 16 : 12;
+
       for (let y = 0; y < canvas.height; y += step) {
         for (let x = 0; x < canvas.width; x += step) {
-          // Estimate lat/lng for pixel by inverse of proj (approx using center offsets) – simplified radial weighting
-          // Instead we just compute distance in screen space to station projections (cheap & approximate)
           let wSum = 0,
             vSum = 0;
-          stations?.forEach((st) => {
-            const p = proj(st.location.lat, st.location.lon);
+          stations.forEach((st) => {
+            const p = project(st.location.lat, st.location.lon);
             const dx = p.x - x;
             const dy = p.y - y;
             const d2 = dx * dx + dy * dy;
-            const w = 1 / (1 + d2 * 0.002); // decay factor
+            const w = 1 / (1 + d2 * 0.002);
             wSum += w;
             vSum += w * st.latestAQI;
           });
@@ -266,77 +283,90 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
           ctx.fillRect(x - step / 2, y - step / 2, step, step);
         }
       }
-    }
+    };
+
     render();
-    const listener = google.maps.event.addListener(mapObj.current, "idle", () =>
-      render()
-    );
+    const idleL = google.maps.event.addListener(mapObj.current, "idle", render);
     return () => {
-      google.maps.event.removeListener(listener);
+      google.maps.event.removeListener(idleL);
     };
   }, [showHeatmap, stations]);
 
-  // Ozone forecast grid rendering (bilinear-sampled to pixels)
+  // Grade de Ozônio (canvas) — bilinear
   useEffect(() => {
     if (!mapObj.current) return;
+
     const existing = document.getElementById(
       "ozone-forecast-layer"
     ) as HTMLCanvasElement | null;
+
     if (!showOzoneForecast) {
       existing?.remove();
       return;
     }
-    // Ensure a deterministic promise exists for tests to await even before first render completes.
-    if (!(window as any).__ozoneRangeReady) {
+
+    // test hook determinístico
+    if (!window.__ozoneRangeReady) {
       let _resolve: any;
       const p = new Promise((res) => {
         _resolve = res;
       });
-      (window as any).__ozoneRangeReady = p;
-      (window as any).__ozoneRangeResolve = _resolve;
+      window.__ozoneRangeReady = p;
+      window.__ozoneRangeResolve = _resolve;
     }
+
     let canvas = existing;
     if (!canvas) {
       canvas = document.createElement("canvas");
       canvas.id = "ozone-forecast-layer";
-      canvas.style.position = "absolute";
-      canvas.style.top = "0";
-      canvas.style.left = "0";
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-      canvas.style.pointerEvents = "none";
-      canvas.style.mixBlendMode = "multiply";
+      Object.assign(canvas.style, {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        mixBlendMode: "multiply",
+      } as CSSStyleDeclaration);
       mapRef.current?.appendChild(canvas);
     }
+
     let cancelled = false;
+
     async function render() {
-      if (!canvas || !mapObj.current) return;
+      if (!canvas || !mapObj.current || !mapRef.current) return;
       try {
         const { meta, data } = await getOzoneGrid(hourIndex);
         if (cancelled) return;
-        const rect = mapRef.current!.getBoundingClientRect();
+
+        const rect = mapRef.current.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
+
         const ctx = canvas.getContext("2d")!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         const projSys = (mapObj.current as any).getProjection?.();
         if (!projSys) return;
+
         const scale = Math.pow(2, mapObj.current.getZoom() || 4);
         const center = projSys.fromLatLngToPoint(mapObj.current.getCenter()!);
-        // Adaptive pixel sampling for performance (finer at higher zoom)
+
         const currentZoom = mapObj.current.getZoom() || 4;
         const step =
           currentZoom < 5 ? 14 : currentZoom < 7 ? 10 : currentZoom < 9 ? 8 : 6;
+
         let vMin = Number.POSITIVE_INFINITY;
         let vMax = Number.NEGATIVE_INFINITY;
+
         for (let py = 0; py < canvas.height; py += step) {
           for (let px = 0; px < canvas.width; px += step) {
-            // Convert screen pixel to world point
             const worldX = center.x + (px - canvas.width / 2) / (scale * 256);
             const worldY = center.y + (py - canvas.height / 2) / (scale * 256);
             const latLng = projSys.fromPointToLatLng({ x: worldX, y: worldY });
             const lat = latLng.lat();
             const lon = latLng.lng();
+
             if (
               lat < meta.lat_min ||
               lat > meta.lat_max ||
@@ -344,29 +374,38 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
               lon > meta.lon_max
             )
               continue;
+
             const latFrac =
               (lat - meta.lat_min) / (meta.lat_max - meta.lat_min);
             const lonFrac =
               (lon - meta.lon_min) / (meta.lon_max - meta.lon_min);
+
             const y = latFrac * (meta.rows - 1);
             const x = lonFrac * (meta.cols - 1);
+
             const y0 = Math.floor(y),
               y1 = Math.min(meta.rows - 1, y0 + 1);
             const x0 = Math.floor(x),
               x1 = Math.min(meta.cols - 1, x0 + 1);
+
             const fy = y - y0,
               fx = x - x0;
+
             const idx = (row: number, col: number) => row * meta.cols + col;
+
             const v00 = data[idx(y0, x0)],
               v01 = data[idx(y0, x1)],
               v10 = data[idx(y1, x0)],
               v11 = data[idx(y1, x1)];
+
             const v0 = v00 * (1 - fx) + v01 * fx;
             const v1 = v10 * (1 - fx) + v11 * fx;
             const val = v0 * (1 - fy) + v1 * fy; // ppb
+
             if (val < vMin) vMin = val;
             if (val > vMax) vMax = val;
-            // Color scale (simple blue -> magenta -> red)
+
+            // escala simples azul→magenta→vermelho
             const normalized = Math.min(1, Math.max(0, val / 120));
             const r = Math.round(255 * normalized);
             const g = Math.round(40 * (1 - normalized));
@@ -375,7 +414,7 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
             ctx.fillRect(px, py, step, step);
           }
         }
-        // Fallback: if no samples were taken (e.g., zero-sized canvas in test/jsdom), derive min/max from raw grid
+
         if (!isFinite(vMin) || !isFinite(vMax)) {
           vMin = Number.POSITIVE_INFINITY;
           vMax = Number.NEGATIVE_INFINITY;
@@ -385,40 +424,42 @@ export function GoogleMap({ onMapLoaded, onMapError }: GoogleMapProps) {
             if (val > vMax) vMax = val;
           }
         }
+
         canvas.dataset.ozMin = isFinite(vMin) ? vMin.toFixed(1) : "";
         canvas.dataset.ozMax = isFinite(vMax) ? vMax.toFixed(1) : "";
+
         try {
           window.dispatchEvent(
             new CustomEvent("ozoneRangeUpdated", {
               detail: { min: vMin, max: vMax },
             })
           );
-          // Deterministic test hook: resolve a global promise the first time range is computed
-          if (!(window as any).__ozoneRangeReady) {
+          if (!window.__ozoneRangeReady) {
             let _resolve: any;
             const p = new Promise((res) => {
               _resolve = res;
             });
-            (window as any).__ozoneRangeReady = p;
-            (window as any).__ozoneRangeResolve = _resolve;
+            window.__ozoneRangeReady = p;
+            window.__ozoneRangeResolve = _resolve;
           }
-          if ((window as any).__ozoneRangeResolve) {
+          if (window.__ozoneRangeResolve) {
             try {
-              (window as any).__ozoneRangeResolve({ min: vMin, max: vMax });
-            } catch {}
-            delete (window as any).__ozoneRangeResolve;
+              window.__ozoneRangeResolve({ min: vMin, max: vMax });
+            } catch {
+              /* empty */
+            }
+            delete window.__ozoneRangeResolve;
           }
         } catch {
-          /* ignore */
+          /* empty */
         }
-      } catch (err) {
-        // Silently ignore rendering errors for now
+      } catch {
+        // ignore errors na renderização de O3
       }
     }
+
     render();
-    const idleL = google.maps.event.addListener(mapObj.current, "idle", () =>
-      render()
-    );
+    const idleL = google.maps.event.addListener(mapObj.current, "idle", render);
     return () => {
       cancelled = true;
       google.maps.event.removeListener(idleL);

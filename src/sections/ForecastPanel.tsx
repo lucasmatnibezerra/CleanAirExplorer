@@ -17,7 +17,6 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
   const setHourIndex = useAppStore((s) => s.setForecastHourIndex);
   const hours = data?.hours ?? [];
 
-  // Mantém o item ativo centralizado (lógica original)
   const activeItemRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (activeItemRef.current) {
@@ -29,14 +28,10 @@ export function ForecastPanel({ compact = false }: { compact?: boolean }) {
     }
   }, [hourIndex]);
 
-  // Mapeamento original + tradução da categoria
   const items = useMemo(() => {
     return hours.map((h, i) => {
       const prev = i > 0 ? hours[i - 1] : null;
       const delta = prev ? h.aqi - prev.aqi : 0;
-
-      // Se seu aqiCategory já retorna label final, t(...) apenas usa o label como fallback.
-      // Se ele retorna chave (ex: 'aqi.good') quando passamos { key: true }, t(...) traduz.
       const catKeyOrLabel = (aqiCategory as any)(h.aqi, { key: true });
       const category =
         typeof catKeyOrLabel === "string"

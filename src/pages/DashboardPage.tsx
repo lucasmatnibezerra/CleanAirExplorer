@@ -1,4 +1,3 @@
-// src/pages/DashboardPage.tsx
 import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import { useForecast } from "@/api/hooks";
@@ -86,11 +85,9 @@ export function DashboardPage() {
 
         <KpiCard
           label={t("dashboard.trend24h", "24h Trend")}
-          // se seu KpiCard antigo não mostra número aqui, mantemos o texto de tendência
           value={prev ? trendLabel : "—"}
           sub={t("dashboard.vsPrevHour", "vs prev hour")}
           intent={delta > 0 ? "warning" : delta < 0 ? "good" : "neutral"}
-          // opcional (novo KpiCard)
           delta={prev ? delta : (null as any)}
           trend={prev ? (trendType as any) : undefined}
         />
@@ -99,7 +96,6 @@ export function DashboardPage() {
           label={t("dashboard.wind", "Wind")}
           value={3.4 as any}
           sub={t("dashboard.nowcast", "Nowcast")}
-          // opcional (novo KpiCard)
           unit="m/s"
           as
           any

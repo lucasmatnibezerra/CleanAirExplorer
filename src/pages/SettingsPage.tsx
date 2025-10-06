@@ -1,4 +1,3 @@
-// src/pages/SettingsPage.tsx
 import { useAppStore } from "../state/store";
 import { useGeolocation } from "../api/geolocation";
 import { useState, useEffect } from "react";
