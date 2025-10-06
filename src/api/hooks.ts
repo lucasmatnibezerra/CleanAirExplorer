@@ -43,7 +43,7 @@ export function useStations(){
   return useQuery<Station[]>({
     queryKey:['stations'],
     queryFn: async () => {
-      const stations: Station[] = Array.from({length: 9}, (_,i)=> ({
+      const stations: Station[] = Array.from({length: 100}, (_,i)=> ({
         id: `ST-${i+1}`,
         name: `Station ${i+1}`,
         location: { lat: 25 + Math.random()*20, lon: -110 + Math.random()*20 },
