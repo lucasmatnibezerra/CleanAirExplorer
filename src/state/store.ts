@@ -16,12 +16,16 @@ interface AppState {
   selectedStationId: string | null;
   forecastHourIndex: number;
   language: string;
+  heatmapOpacity: number;
+  heatmapBlendMode: string;
   toggleLayer: (key:LayerKey) => void;
   setSelectedStation: (id: string | null) => void;
   updateSettings: (partial: Partial<SettingsState>) => void;
   setHomeLocation: (lat:number, lon:number) => void;
   setForecastHourIndex: (idx:number) => void;
   setLanguage: (lang:string) => void;
+  setHeatmapOpacity: (v:number)=> void;
+  setHeatmapBlendMode: (m:string)=> void;
 }
 
 const defaultLayers: LayerState[] = [
@@ -30,8 +34,8 @@ const defaultLayers: LayerState[] = [
   { key:'aqi_surface', label:'AQI Surface', visible:true, order:3 },
   { key:'stations', label:'Stations', visible:true, order:4 },
   { key:'wind_vectors', label:'Wind', visible:false, order:5 },
-  { key:'aqi_heatmap', label:'AQI Heatmap', visible:false, order:6 },
-  { key:'ozone_forecast', label:'Ozone Forecast', visible:false, order:7 },
+  { key:'aqi_heatmap', label:'AQI Heatmap', visible:true, order:6 },
+  { key:'ozone_forecast', label:'Ozone Forecast', visible:true, order:7 },
 ]
 
 const defaultSettings: SettingsState = { units:'AQI', alertThreshold:100, homeLocation: null }
@@ -42,6 +46,8 @@ export const useAppStore = create<AppState>()(persist((set)=>({
   selectedStationId: null,
   forecastHourIndex: 0,
   language: 'en',
+  heatmapOpacity: 0.75,
+  heatmapBlendMode: 'normal',
   toggleLayer: (key) => set(s => ({
     layers: s.layers.map(l => l.key===key ? {...l, visible: !l.visible}: l)
   })),
@@ -49,5 +55,7 @@ export const useAppStore = create<AppState>()(persist((set)=>({
   updateSettings: (partial) => set(s => ({ settings: { ...s.settings, ...partial } })),
   setHomeLocation: (lat, lon) => set(s => ({ settings: { ...s.settings, homeLocation: {lat, lon} } })),
   setForecastHourIndex: (idx) => set({ forecastHourIndex: idx }),
-  setLanguage: (lang) => set({ language: lang })
+  setLanguage: (lang) => set({ language: lang }),
+  setHeatmapOpacity: (v)=> set({ heatmapOpacity: Math.min(1, Math.max(0, v)) }),
+  setHeatmapBlendMode: (m)=> set({ heatmapBlendMode: m })
 }), { name:'clean-air-app' }))

@@ -311,3 +311,89 @@ When backend is ready, swap `.npy` fetch logic for a `/forecast/ozone?hour=` end
 **Contact / Coordination:** Use project discussion board or tag the data pipeline lead for endpoint contract changes.
 
 Let’s turn Earth observation into actionable local insight — rapidly, accessibly, and transparently.
+
+## 23. UI Components (shadcn/ui Integration)
+
+This project now uses the official [shadcn/ui](https://ui.shadcn.com) workflow for all headless UI primitives (Radix based) instead of custom hand‑rolled clones.
+
+### 23.1 Component Source of Truth
+All generated components live under:
+```
+src/components/ui/
+```
+They are added or refreshed exclusively via the CLI. Avoid manually creating new primitives in that folder—prefer the CLI to keep consistency and future diffs clean.
+
+### 23.2 Prerequisites Already Configured
+| Item | Status | Notes |
+|------|--------|-------|
+| Tailwind v4 | ✓ | Tokens & CSS vars updated during `init` |
+| Path alias `@/*` | ✓ | Defined in root `tsconfig.json` |
+| `components.json` | ✓ | Created by `npx shadcn@latest init` |
+
+### 23.3 Adding a New Component
+Use the CLI (examples):
+```
+npx shadcn@latest add hover-card
+npx shadcn@latest add dropdown-menu
+```
+If the file already exists you will be prompted to overwrite—answer `yes` only if you intend to fully sync with the upstream template (your local changes to that file will be replaced).
+
+### 23.4 Updating / Re‑Syncing a Component
+Re-run the same add command and confirm overwrite:
+```
+npx shadcn@latest add button
+```
+After overwrite, re‑apply any intentional local extensions (see variants section below). Keep those extensions minimal and well‑scoped.
+
+### 23.5 Extending Variants (Example: Button “primary” Alias)
+The upstream `button` ships with variants: `default | destructive | outline | secondary | ghost | link`.
+
+We added a backwards‑compatibility alias `primary` mapped to the same classes as `default`. The relevant diff (inside `button.tsx`):
+```ts
+variant: {
+  default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+  primary: "bg-primary text-primary-foreground shadow hover:bg-primary/90", // alias
+  destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+  // ...
+}
+```
+Guideline: if you need a truly new visual style, prefer composing a wrapper (e.g. `<CriticalButton />`) rather than heavily editing the generated component.
+
+### 23.6 Local Customizations Policy
+| Allowed | Avoid |
+|---------|-------|
+| Small variant additions | Large refactors inside generated file |
+| Adding utility classes for spacing | Renaming exported symbols (breaks imports) |
+| Wrapper components colocated elsewhere | Inline business logic |
+
+### 23.7 Scroll Area Virtualization Hook
+The project uses manual windowing inside `TrendsPage` with the official `ScrollArea`. We pass a custom `viewportRef` prop (extension) to measure `clientHeight` and attach `onScroll` for virtualization. If you regenerate `scroll-area.tsx`, re‑apply the small extension:
+```tsx
+interface ExtendedScrollAreaProps extends RootProps {
+  viewportRef?: React.Ref<HTMLDivElement>
+}
+// Forward onScroll & ref to <Viewport>
+```
+Recharts or a larger list can later adopt `@tanstack/react-virtual` if the simple approach becomes limiting.
+
+### 23.8 Adding Skeletons / Loading States
+`skeleton` component was added via CLI (`npx shadcn add skeleton`). Use it for consistent loading placeholders instead of ad‑hoc divs with pulse classes.
+
+### 23.9 Icons Strategy
+Icons are still centralized in `ui/icons.tsx` mapping to `lucide-react` components; these are not managed by shadcn CLI (lucide is already its underlying icon source). When adding a new icon, import from `lucide-react` and expose it through the `Icon` object for consistent usage.
+
+### 23.10 Theming & Tokens
+Theme variables were inserted into `index.css` during the `init` step. If you add new components and the CLI offers to update styles, accept. Custom dark palette tokens remain; prefer editing design tokens (CSS variables) rather than scattering arbitrary hex values.
+
+### 23.11 Troubleshooting
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Build error: variant prop value invalid | Using old custom variant (e.g. `primary`) without alias | Re-add alias or migrate calls to `default` |
+| Scroll virtualization offset wrong | Lost `relative` class on `<Viewport>` or transform container | Ensure `Viewport` has `relative`, use translateY approach |
+| Styles missing | Accidentally removed Tailwind directives in `index.css` | Restore `@tailwind base; @tailwind components; @tailwind utilities;` |
+| Duplicate component exports | Manual file + CLI generated file both present | Remove manual version, keep CLI version |
+
+### 23.12 Contribution Rule of Thumb
+Before committing a new primitive: “Did I run `npx shadcn@latest add <name>`?” — If not, do that first.
+
+---

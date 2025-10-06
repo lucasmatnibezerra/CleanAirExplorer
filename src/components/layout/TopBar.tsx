@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { requestNotificationPermission } from '../../notifications'
@@ -31,11 +31,11 @@ export function TopBar() {
       >
         <Icon.menu className="w-5 h-5" />
       </Button>
-      <div className="flex items-center gap-2 select-none">
-        <img src={Logo} alt="Clean Air" className="w-7 h-7 drop-shadow-sm" loading="lazy" />
-        <span className="font-semibold tracking-wide text-sky-300">{t('app.title')}</span>
+      <Link to="/" className="flex items-center gap-2 select-none focus-visible:outline-none group" aria-label={t('nav.map','Map')}>
+        <img src={Logo} alt="Clean Air" className="w-7 h-7 drop-shadow-sm group-hover:scale-[1.03] transition-transform" loading="lazy" />
+        <span className="font-semibold tracking-wide text-sky-300 group-hover:text-sky-200">{t('app.title')}</span>
         <Badge variant="outline" className="uppercase tracking-wide bg-indigo-600/70 border-indigo-400/50 text-[10px] text-white">Demo</Badge>
-      </div>
+      </Link>
       <div className="hidden md:flex flex-col leading-tight text-[10px] text-slate-400">
         <span>Belém, PA</span>
         <span className="text-slate-500">{t('forecast.loading').replace('…', '')} {timestamp}</span>
@@ -63,8 +63,8 @@ export function TopBar() {
           >
             <NavLink onClick={()=>setOpen(false)} to="/" end className={({isActive}) => mobileLink(isActive)}>{t('nav.map')}</NavLink>
             <NavLink onClick={()=>setOpen(false)} to="/stations" className={({isActive}) => mobileLink(isActive)}>{t('nav.stations')}</NavLink>
-            <NavLink onClick={()=>setOpen(false)} to="/settings" className={({isActive}) => mobileLink(isActive)}>{t('nav.forecast')}</NavLink>
-            <NavLink onClick={()=>setOpen(false)} to="/about" className={({isActive}) => mobileLink(isActive)}>{t('nav.alerts')}</NavLink>
+            <NavLink onClick={()=>setOpen(false)} to="/forecast" className={({isActive}) => mobileLink(isActive)}>{t('nav.forecast','Forecast')}</NavLink>
+            <NavLink onClick={()=>setOpen(false)} to="/about" className={({isActive}) => mobileLink(isActive)}>{t('nav.about','About')}</NavLink>
           </nav>
         </>
       )}

@@ -23,7 +23,7 @@ export function RootLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
       <TopBar />
-      <div className="flex flex-1 overflow-hidden">
+  <div className="flex flex-1 min-h-0">
         <aside className={`group relative border-r border-border/60 bg-card/40 backdrop-blur-md p-3 hidden md:flex flex-col transition-[width] duration-300 ease-out ${collapsed ? 'w-16' : 'w-56'}`} aria-label="Sidebar navigation">
           <div className="flex items-center justify-between mb-4 text-sm font-semibold">
             <span className={`transition-opacity duration-200 text-muted-foreground tracking-wide uppercase text-[11px] ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>{t('layout.navigation','Navigation')}</span>
@@ -39,11 +39,12 @@ export function RootLayout() {
           <nav className="space-y-1 text-sm flex-1" aria-label="Primary">
             <SidebarLink to="/" end collapsed={collapsed} label={t('nav.map','Map')} icon="chart-dots" />
             <SidebarLink to="/stations" collapsed={collapsed} label={t('nav.stations','Stations')} icon="building" />
+            <SidebarLink to="/trends" collapsed={collapsed} label={t('nav.trends','Trends')} icon="trending" />
             <SidebarLink to="/settings" collapsed={collapsed} label={t('nav.forecast','Forecast')} icon="settings" />
             <SidebarLink to="/about" collapsed={collapsed} label={t('nav.about','About')} icon="info-circle" />
           </nav>
         </aside>
-        <main ref={mainAnimRef} className="flex-1 overflow-y-auto px-4 py-4 md:py-6 will-change-transform">
+        <main ref={mainAnimRef} className="flex-1 overflow-y-auto px-4 py-10 md:py-12 will-change-transform">
           <div className="max-w-7xl mx-auto">
             <Suspense fallback={<p>Loading...</p>}>
               <Outlet />
@@ -70,6 +71,7 @@ interface SidebarLinkProps {
 const iconMap: Record<string, React.ComponentType<any>> = {
   'chart-dots': Icon.gauge,
   'building': Icon.layers,
+  'trending': Icon.trendingUp,
   'settings': Icon.settings,
   'info-circle': Icon.info,
 }

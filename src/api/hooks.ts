@@ -43,11 +43,12 @@ export function useStations(){
   return useQuery<Station[]>({
     queryKey:['stations'],
     queryFn: async () => {
-      const stations: Station[] = Array.from({length: 100}, (_,i)=> ({
+      const stations: Station[] = Array.from({length: 220}, (_,i)=> ({
         id: `ST-${i+1}`,
         name: `Station ${i+1}`,
-        location: { lat: 25 + Math.random()*20, lon: -110 + Math.random()*20 },
-        latestAQI: Math.round(30 + Math.random()*140)
+        // Wider bounding box (CONUS)
+        location: { lat: 24 + Math.random()*25, lon: -125 + Math.random()*59 },
+        latestAQI: Math.round(25 + Math.random()*160)
       }))
   const { StationSchema } = await import('./schemas')
   const parsed = stations.map(s => StationSchema.parse(s))

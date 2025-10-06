@@ -18,18 +18,13 @@ describe('map canvas layers', () => {
     render(withI18n(<QueryClientProvider client={qc}><MapPanel /></QueryClientProvider>))
   }
 
-  it('creates AQI heatmap canvas when toggled', async () => {
+  it('heatmap canvas present by default (id #ca-heatmap)', async () => {
     setup()
-    const heatBtn = screen.getByRole('button', { name: /toggle aqi heatmap/i })
-    fireEvent.click(heatBtn)
-    await waitFor(()=> expect(document.getElementById('aqi-heatmap-layer')).not.toBeNull())
+    await waitFor(()=> expect(document.getElementById('ca-heatmap')).not.toBeNull())
   })
 
-  it('creates ozone forecast canvas when toggled', () => {
+  it('ozone forecast canvas present by default (id #ca-ozone)', async () => {
     setup()
-    const ozoneBtn = screen.getByRole('button', { name: /toggle ozone forecast layer/i })
-    fireEvent.click(ozoneBtn)
-    const canvas = document.getElementById('ozone-forecast-layer') as HTMLCanvasElement | null
-    expect(canvas).not.toBeNull()
+    await waitFor(()=> expect(document.getElementById('ca-ozone')).not.toBeNull())
   })
 })

@@ -1,13 +1,15 @@
-export function Skeleton({ className='' }: { className?: string }){
-  return <div className={`animate-pulse rounded bg-slate-700/40 ${className}`} />
-}
+import { cn } from "@/lib/utils"
 
-export function SkeletonText({ lines=3 }: { lines?: number }){
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="space-y-2">
-      {Array.from({length: lines}).map((_,i)=>(
-        <Skeleton key={i} className="h-3" />
-      ))}
-    </div>
+    <div
+      className={cn("animate-pulse rounded-md bg-primary/10", className)}
+      {...props}
+    />
   )
 }
+
+export { Skeleton }

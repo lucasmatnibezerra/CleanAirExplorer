@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import Accordion, { AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion'
 
 export function AboutPage(){
   const { t } = useTranslation()
@@ -12,7 +12,7 @@ export function AboutPage(){
         </div>
 
         <div className="w-full md:w-2/3 mx-0">
-          <Accordion defaultValue={null}>
+          <Accordion type="single" collapsible>
             <AccordionItem value="sources">
               <AccordionTrigger className="bg-neutral-800/40">{t('about.plannedSources')}</AccordionTrigger>
               <AccordionContent>

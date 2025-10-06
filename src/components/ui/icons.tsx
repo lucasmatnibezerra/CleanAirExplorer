@@ -1,4 +1,4 @@
-import { Menu, Bell, Sun, Moon, Map, Layers, Gauge, Settings, Info, ChevronDown, Check } from 'lucide-react'
+import { Menu, Bell, Sun, Moon, Map, Layers, Gauge, Settings, Info, ChevronDown, Check, TrendingUp } from 'lucide-react'
 
 export const Icon = {
   menu: Menu,
@@ -12,4 +12,5 @@ export const Icon = {
   info: Info,
   chevronDown: ChevronDown,
   check: Check,
+  trendingUp: TrendingUp,
 }

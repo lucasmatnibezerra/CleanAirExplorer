@@ -23,6 +23,10 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
   const panelRef = useRef<HTMLDivElement|null>(null)
   const layers = useAppStore(s => s.layers)
   const toggle = useAppStore(s => s.toggleLayer)
+  const heatmapOpacity = useAppStore(s => s.heatmapOpacity)
+  const heatmapBlendMode = useAppStore(s => s.heatmapBlendMode)
+  const setHeatmapOpacity = useAppStore(s => s.setHeatmapOpacity)
+  const setHeatmapBlendMode = useAppStore(s => s.setHeatmapBlendMode)
   const { t } = useTranslation()
 
   useEffect(()=>{
@@ -45,13 +49,11 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
 
   return (
     <div className="relative">
-      <button ref={btnRef} aria-haspopup="dialog" aria-expanded={open} aria-controls="map-legend-panel" onClick={()=> onOpenChange(!open)} className="btn-soft text-xs font-medium">
+      <button data-testid="legend-trigger" ref={btnRef} aria-haspopup="dialog" aria-expanded={open} aria-controls="map-legend-panel" onClick={()=> onOpenChange(!open)} className="btn-soft text-xs font-medium shadow-lg shadow-black/40">
         {t('legend.button','Legend')}
       </button>
       {open && (
-        <>
-          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[130]" onClick={()=> onOpenChange(false)} aria-hidden="true" />
-          <div ref={panelRef} id="map-legend-panel" role="dialog" aria-modal="true" aria-label="Map legend and layer toggles" className="fixed top-0 right-0 h-full w-80 md:w-72 overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 backdrop-blur px-5 pt-6 pb-8 shadow-xl space-y-6 text-[11px] z-[140] animate-in slide-in-from-right">
+        <div ref={panelRef} id="map-legend-panel" role="dialog" aria-modal="false" aria-label="Map legend and layer toggles" className="absolute top-10 right-0 w-72 max-h-[70vh] overflow-y-auto border border-slate-700/70 bg-slate-900 px-5 pt-5 pb-6 shadow-xl space-y-5 text-[11px] rounded-lg z-[3600] animate-in fade-in-0">
           <div>
             <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.layers','Layers')}</p>
             <ul className="space-y-1">
@@ -80,6 +82,39 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
               })}
             </div>
           </div>
+          {/* Heatmap controls */}
+          <div>
+            <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.heatmap','Heatmap')}</p>
+            <div className="space-y-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-slate-300 text-[10px] uppercase tracking-wide">{t('legend.opacity','Opacity')} <span className="text-slate-500">{Math.round(heatmapOpacity*100)}%</span></span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={heatmapOpacity}
+                  onChange={e=> setHeatmapOpacity(parseFloat(e.target.value))}
+                  aria-label={t('legend.opacity','Opacity')}
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-slate-300 text-[10px] uppercase tracking-wide">{t('legend.blendMode','Blend')}</span>
+                <select
+                  value={heatmapBlendMode}
+                  onChange={e=> setHeatmapBlendMode(e.target.value)}
+                  className="bg-slate-800/70 border border-slate-600/50 rounded px-2 py-1 text-[11px] focus-visible:outline focus-visible:outline-sky-500"
+                  aria-label={t('legend.blendMode','Blend')}
+                >
+                  <option value="normal">normal</option>
+                  <option value="multiply">multiply</option>
+                  <option value="overlay">overlay</option>
+                  <option value="screen">screen</option>
+                  <option value="hard-light">hard-light</option>
+                </select>
+              </label>
+            </div>
+          </div>
           <div>
             <p className="font-semibold text-sky-200 tracking-wide mb-2">{t('legend.ozoneForecast','Ozone Forecast')}</p>
             <div className="space-y-2">
@@ -95,9 +130,8 @@ export function LegendPopover({ open, onOpenChange }: LegendPopoverProps){
           <div className="pt-2 border-t border-slate-700/60 text-[10px] text-slate-400">
             <p>{t('legend.sources','Data sources: TEMPO (satellite), local stations (mock)')}</p>
           </div>
-            <button onClick={()=> onOpenChange(false)} className="absolute top-3 right-3 text-slate-400 hover:text-slate-200" aria-label={t('common.close','Close')}>&times;</button>
-          </div>
-        </>
+          <button onClick={()=> onOpenChange(false)} className="absolute top-2 right-2 text-slate-400 hover:text-slate-200" aria-label={t('common.close','Close')}>&times;</button>
+        </div>
       )}
     </div>
   )
@@ -108,7 +142,7 @@ function OzoneRangeMini(){
   const [range, setRange] = useState<{min:string; max:string} | null>(null)
   useEffect(()=>{
     function pull(){
-      const canvas = document.getElementById('ozone-forecast-layer') as HTMLCanvasElement | null
+      const canvas = document.getElementById('ca-ozone') as HTMLCanvasElement | null
       if(canvas && canvas.dataset.ozMin && canvas.dataset.ozMax){
         setRange({ min: canvas.dataset.ozMin, max: canvas.dataset.ozMax })
       }

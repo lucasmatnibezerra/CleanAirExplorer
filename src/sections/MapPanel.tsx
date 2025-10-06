@@ -2,7 +2,7 @@
 import LeafletMap from '../components/map/LeafletMap'
 // Lazy import legacy MapLibre only if needed
 let LegacyMap: React.ComponentType<any> | null = null
-const provider = import.meta.env.VITE_MAP_PROVIDER || 'google'
+const provider = (import.meta.env.VITE_MAP_PROVIDER as string | undefined) || 'leaflet'
 if(provider === 'maplibre'){
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -40,12 +40,34 @@ export function MapPanel(){
   const visibleCount = layers.filter(l => l.visible).length
   const showEmpty = visibleCount === 0
   return (
-	<Card className="h-[380px] md:h-[520px] relative overflow-hidden p-0 group">
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 text-xs bg-card/70 backdrop-blur border-b border-border/60 z-10">
-        <div className="flex items-center gap-2">
+  <Card className="h-[380px] md:h-[520px] relative overflow-hidden p-0 group flex flex-col">
+  <div className="flex items-center justify-between px-3 py-2 text-xs bg-card border-b border-border/60">
+        <div className="flex items-center gap-3">
           <Icon.map className="w-4 h-4 text-sky-400" />
           <h2 className="text-sm font-semibold tracking-tight">{t('map.title','Regional Air Quality Map')}</h2>
           <Badge variant="outline" className="text-[9px] tracking-wide uppercase">{provider}</Badge>
+          {/* Inline mini legends when layers active */}
+          <div className="hidden md:flex items-center gap-3 pl-2">
+            {heat?.visible && (
+              <button onClick={()=> setLegendOpen(true)} className="flex items-center gap-1 group" aria-label="Open legend (AQI)">
+                <div className="flex items-center gap-1" aria-label="AQI scale mini legend">
+                  {[['#22c55e','0'],['#eab308','50'],['#f97316','100'],['#dc2626','150'],['#7e22ce','200']].map(([c,label])=> (
+                    <span key={c} className="w-4 h-3 rounded-sm ring-1 ring-white/15 group-hover:ring-white/30" style={{background:c}} title={label} />
+                  ))}
+                </div>
+                <div className="flex items-center text-[9px] text-slate-400/80 ml-1 gap-1 tracking-tight">
+                  {[0,50,100,150,200].map(n=> <span key={n}>{n}</span>)}
+                </div>
+                <span className="text-[10px] text-slate-400 ml-1">AQI</span>
+              </button>
+            )}
+            {ozoneForecast?.visible && (
+              <button onClick={()=> setLegendOpen(true)} className="flex items-center gap-1" aria-label="Open legend (Ozone)">
+                <div className="w-28 h-3 rounded-sm bg-gradient-to-r from-sky-600 via-fuchsia-500 to-red-600 ring-1 ring-white/15" />
+                <span className="text-[10px] text-slate-400">O₃</span>
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-1" role="toolbar" aria-label={t('map.layersToolbar','Map data layers')}>
           <Button
@@ -91,7 +113,7 @@ export function MapPanel(){
           <LegendPopover open={legendOpen} onOpenChange={setLegendOpen} />
         </div>
       </div>
-      <div className="w-full h-full">
+  <div className="flex-1 relative">
         {!mapLoaded && (
           <div className="absolute inset-0 flex flex-col gap-4 p-6 bg-gradient-to-br from-slate-950/70 to-slate-800/50">
             <div className="h-6 w-40 rounded bg-slate-700/40 animate-pulse" />
