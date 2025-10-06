@@ -4,29 +4,34 @@ import { useMemo, useState } from "react";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useThemeMode } from "../hooks/useThemeMode";
 import type { Alert } from "../api/types";
+import { useTranslation } from "react-i18next";
 
-function severityMeta(sev: Alert["severity"], isDark: boolean) {
+function severityMeta(
+  sev: Alert["severity"],
+  isDark: boolean,
+  t: (k: string, d?: string) => string
+) {
   const light = {
     info: {
-      label: "Info",
+      label: t("alerts.info", "Info"),
       icon: "ℹ",
       wrap: "bg-sky-100 border-sky-300",
       chip: "bg-sky-200 text-sky-800 border-sky-400",
     },
     moderate: {
-      label: "Moderate",
+      label: t("alerts.moderate", "Moderate"),
       icon: "⚠",
       wrap: "bg-amber-100 border-amber-300",
       chip: "bg-amber-200 text-amber-800 border-amber-400",
     },
     unhealthy: {
-      label: "Unhealthy",
+      label: t("alerts.unhealthy", "Unhealthy"),
       icon: "!",
       wrap: "bg-red-100 border-red-300",
       chip: "bg-red-200 text-red-800 border-red-400",
     },
     default: {
-      label: sev,
+      label: t(`alerts.${sev}`, sev),
       icon: "ℹ",
       wrap: "bg-slate-100 border-slate-300",
       chip: "bg-slate-200 text-slate-800 border-slate-400",
@@ -35,25 +40,25 @@ function severityMeta(sev: Alert["severity"], isDark: boolean) {
 
   const dark = {
     info: {
-      label: "Info",
+      label: t("alerts.info", "Info"),
       icon: "ℹ",
       wrap: "bg-sky-900/30 border-sky-700/40",
       chip: "bg-sky-500/20 text-sky-300 border-sky-500/40",
     },
     moderate: {
-      label: "Moderate",
+      label: t("alerts.moderate", "Moderate"),
       icon: "⚠",
       wrap: "bg-amber-900/20 border-amber-700/40",
       chip: "bg-amber-500/20 text-amber-300 border-amber-500/40",
     },
     unhealthy: {
-      label: "Unhealthy",
+      label: t("alerts.unhealthy", "Unhealthy"),
       icon: "!",
       wrap: "bg-red-900/30 border-red-700/40",
       chip: "bg-red-500/20 text-red-300 border-red-500/40",
     },
     default: {
-      label: sev,
+      label: t(`alerts.${sev}`, sev),
       icon: "ℹ",
       wrap: "bg-slate-800/40 border-slate-600/40",
       chip: "bg-slate-500/20 text-slate-300 border-slate-500/40",
@@ -65,6 +70,7 @@ function severityMeta(sev: Alert["severity"], isDark: boolean) {
 }
 
 export function AlertsPanel() {
+  const { t } = useTranslation();
   const { data, isLoading } = useAlerts();
   const [open, setOpen] = useState(false);
   const isDarkRaw = useThemeMode(); // pode ser null na primeira pintura
@@ -99,7 +105,7 @@ export function AlertsPanel() {
           isDark ? "text-rose-300" : "text-rose-600"
         }`}
       >
-        Health Alerts
+        {t("alerts.title", "Health Alerts")}
       </h2>
 
       {isLoading && (
@@ -112,7 +118,7 @@ export function AlertsPanel() {
 
       <ul className="space-y-2 text-sm">
         {data?.map((a: Alert) => {
-          const m = severityMeta(a.severity, isDark);
+          const m = severityMeta(a.severity, isDark, t);
           return (
             <li
               key={a.id}
@@ -149,7 +155,7 @@ export function AlertsPanel() {
                       : "bg-slate-200 hover:bg-slate-300 text-slate-800"
                   }`}
                 >
-                  View guidance
+                  {t("alerts.viewGuidance", "View guidance")}
                 </button>
               </div>
             </li>
@@ -171,15 +177,17 @@ export function AlertsPanel() {
                     isDark ? "text-slate-300" : "text-slate-700"
                   }`}
                 >
-                  No active alerts.
+                  {t("alerts.none", "No active alerts.")}
                 </p>
                 <p
                   className={`text-[11px] ${
                     isDark ? "text-slate-300/90" : "text-slate-600/90"
                   }`}
                 >
-                  Review general guidance to prepare for potential changes in
-                  air quality.
+                  {t(
+                    "alerts.emptyCtaHint",
+                    "Review general guidance to prepare for potential changes in air quality."
+                  )}
                 </p>
               </div>
               {spark && (
@@ -203,7 +211,7 @@ export function AlertsPanel() {
                     : "bg-sky-500 hover:bg-sky-400 text-white"
                 }`}
               >
-                View guidance
+                {t("alerts.viewGuidance", "View guidance")}
               </button>
             </div>
           </li>
@@ -214,7 +222,7 @@ export function AlertsPanel() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Health guidance"
+          aria-label={t("alerts.guidanceAria", "Health guidance")}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
           <div
@@ -235,7 +243,7 @@ export function AlertsPanel() {
                 isDark ? "text-slate-100" : "text-slate-800"
               }`}
             >
-              Health Guidance (Demo)
+              {t("alerts.guidanceTitle", "Health Guidance (Demo)")}
             </h3>
             <ul
               className={`text-[11px] space-y-2 ${
@@ -243,16 +251,25 @@ export function AlertsPanel() {
               }`}
             >
               <li>
-                <strong>Children:</strong> Limit prolonged outdoor exertion if
-                AQI &gt; 100.
+                <strong>{t("alerts.children", "Children")}:</strong>{" "}
+                {t(
+                  "alerts.childrenGuidance",
+                  "Limit prolonged outdoor exertion if AQI > 100."
+                )}
               </li>
               <li>
-                <strong>Older Adults:</strong> Prefer indoor activities when AQI
-                &gt; 150.
+                <strong>{t("alerts.olderAdults", "Older Adults")}:</strong>{" "}
+                {t(
+                  "alerts.olderAdultsGuidance",
+                  "Prefer indoor activities when AQI > 150."
+                )}
               </li>
               <li>
-                <strong>Asthma:</strong> Keep rescue inhaler accessible; avoid
-                heavy exercise.
+                <strong>{t("alerts.asthma", "Asthma")}:</strong>{" "}
+                {t(
+                  "alerts.asthmaGuidance",
+                  "Keep rescue inhaler accessible; avoid heavy exercise."
+                )}
               </li>
             </ul>
             <div className="flex justify-end">
@@ -264,7 +281,7 @@ export function AlertsPanel() {
                     : "bg-sky-500 hover:bg-sky-400 text-white"
                 }`}
               >
-                Close
+                {t("actions.close", "Close")}
               </button>
             </div>
           </div>
