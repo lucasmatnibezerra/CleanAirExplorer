@@ -4,10 +4,12 @@ import { useState, Suspense, lazy, useMemo, useRef, useEffect, useCallback, useL
 import { Star, StarOff, Pin, PinOff, X, MapPin } from 'lucide-react'
 import { ScrollArea } from '../components/ui/scroll-area'
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { useTranslation } from 'react-i18next'
 
 const TrendChart = lazy(()=> import('../sections/TrendChart'))
 
 export function TrendsPage(){
+  const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const stationParam = params.get('station')
   const pollutantParam = params.get('pollutant') || 'PM2.5'
@@ -132,14 +134,14 @@ export function TrendsPage(){
         <div className="bg-gradient-to-b from-slate-950/70 to-slate-950/30 px-1 pt-3 pb-2 flex flex-wrap gap-4 items-start justify-between rounded-md border border-border/40">
           <div className="flex flex-col gap-1 min-w-0">
             <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-              <span>Historical trends</span>
+              <span>{t('trends.title','Historical trends')}</span>
               {stationParam && (
                 <span className="text-slate-400 font-normal truncate max-w-[240px]">— {enriched?.find(s=> s.id===stationParam)?.name}</span>
               )}
             </h1>
             {stationParam && enriched && (()=>{ const s = enriched.find(x=> x.id===stationParam); if(!s) return null; return (
               <div className="flex flex-wrap gap-2 items-center text-[11px]">
-                <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-slate-500">
+                <nav aria-label={t('trends.breadcrumb','Breadcrumb')} className="flex items-center gap-1 text-slate-500">
                   <button onClick={()=> setFilterCountry(s.country)} className="hover:text-slate-300 focus:outline-none underline-offset-2 hover:underline">{s.country}</button>
                   <span>/</span>
                   <button onClick={()=> setQ(s.city)} className="hover:text-slate-300 focus:outline-none underline-offset-2 hover:underline">{s.city}</button>
@@ -153,18 +155,18 @@ export function TrendsPage(){
                   {pinned===s.id? <Pin className="h-3 w-3" /> : <PinOff className="h-3 w-3" />}
                   {pinned===s.id? 'Pinned':'Pin'}
                 </button>
-                {stationParam && <button onClick={()=> { params.delete('station'); setParams(params,{replace:true}) }} className="h-6 px-2 inline-flex items-center gap-1 rounded bg-slate-800/60 hover:bg-slate-700/60 text-[10px]" aria-label="Clear selected station"><X className="h-3 w-3" />Clear</button>}
+                {stationParam && <button onClick={()=> { params.delete('station'); setParams(params,{replace:true}) }} className="h-6 px-2 inline-flex items-center gap-1 rounded bg-slate-800/60 hover:bg-slate-700/60 text-[10px]" aria-label={t('trends.clearSelected','Clear selected station')}><X className="h-3 w-3" />{t('actions.clear','Clear')}</button>}
               </div>
             )})()}
           </div>
           <div className="flex items-center gap-3 text-xs">
-            <label className="text-slate-400">Pollutant</label>
+            <label className="text-slate-400">{t('trends.pollutant','Pollutant')}</label>
             <select value={pollutant} onChange={e=> setPollutant(e.target.value)} className="bg-slate-800/60 ring-1 ring-slate-700/50 rounded px-2 py-1">
               <option>PM2.5</option>
               <option>NO2</option>
               <option>O3</option>
             </select>
-            <Tabs value={range} onValueChange={(v:any)=> setRange(v)} className="h-8">
+            <Tabs value={range} onValueChange={(v)=> setRange(v as '24h'|'7d'|'30d')} className="h-8">
               <TabsList className="h-8">
                 <TabsTrigger value="24h">24h</TabsTrigger>
                 <TabsTrigger value="7d">7d</TabsTrigger>
@@ -202,17 +204,17 @@ export function TrendsPage(){
           {series && (
             <>
               <div className="flex-1 min-h-0">
-                <Suspense fallback={<p className="text-xs text-muted-foreground">Loading chart…</p>}>
+                <Suspense fallback={<p className="text-xs text-muted-foreground">{t('trends.loadingChart','Loading chart…')}</p>}>
                   <TrendChart series={filtered || series} />
                 </Suspense>
               </div>
               <div className="mt-3 text-[10px] text-slate-500 flex justify-between">
-                <span>Source mock · Updated just now</span>
-                <span className="italic">(demo)</span>
+                <span>{t('trends.source','Source mock · Updated just now')}</span>
+                <span className="italic">{t('common.demo','(demo)')}</span>
               </div>
               {series.points.length === 0 && (
                 <div className="mt-4 text-center text-xs text-slate-500">
-                  No data for this range/pollutant. Try another interval.
+                  {t('trends.empty','No data for this range/pollutant. Try another interval.')}
                 </div>
               )}
             </>
@@ -222,22 +224,22 @@ export function TrendsPage(){
     {/* Station selector panel */}
   <aside ref={asideRef} style={asideMaxH? { maxHeight: asideMaxH } : undefined} className="w-72 shrink-0 flex flex-col gap-3 min-h-0 relative">
         <div className="rounded-lg ring-1 ring-border bg-card/60 p-3 flex flex-col gap-3">
-          <input value={q} onChange={e=> setQ(e.target.value)} placeholder="Search station…" className="w-full text-xs rounded bg-slate-800/70 px-2 py-1 ring-1 ring-slate-700/50 focus:outline-none focus:ring-sky-600" />
+          <input value={q} onChange={e=> setQ(e.target.value)} placeholder={t('trends.searchStation','Search station…')} className="w-full text-xs rounded bg-slate-800/70 px-2 py-1 ring-1 ring-slate-700/50 focus:outline-none focus:ring-sky-600" />
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <select value={filterCountry||''} onChange={e=> setFilterCountry(e.target.value||undefined)} className="bg-slate-800/70 rounded px-2 py-1 ring-1 ring-slate-700/50">
-              <option value="">Country</option>
+              <option value="">{t('trends.country','Country')}</option>
               <option value="BR">BR</option>
               <option value="US">US</option>
               <option value="CA">CA</option>
             </select>
             <select value={filterSource||''} onChange={e=> setFilterSource(e.target.value||undefined)} className="bg-slate-800/70 rounded px-2 py-1 ring-1 ring-slate-700/50">
-              <option value="">Source</option>
+              <option value="">{t('trends.sourceFilter','Source')}</option>
               <option value="OpenAQ">OpenAQ</option>
               <option value="AirNow">AirNow</option>
               <option value="Pandora">Pandora</option>
             </select>
             <select value={filterStatus||''} onChange={e=> setFilterStatus(e.target.value||undefined)} className="bg-slate-800/70 rounded px-2 py-1 ring-1 ring-slate-700/50 col-span-2">
-              <option value="">Status</option>
+              <option value="">{t('trends.status','Status')}</option>
               <option value="online">Online</option>
               <option value="offline">Offline</option>
             </select>
@@ -245,7 +247,7 @@ export function TrendsPage(){
           <div className="text-[10px] text-slate-400 space-y-1">
             {favorites.length>0 && (
               <div>
-                <p className="uppercase tracking-wide text-[9px] mb-1 text-slate-500">Favorites</p>
+                <p className="uppercase tracking-wide text-[9px] mb-1 text-slate-500">{t('trends.favorites','Favorites')}</p>
                 <div className="flex flex-wrap gap-1">
                   {favorites.map(id=> (
                     <button key={id} onClick={()=> selectStation(id)} className={`px-2 py-0.5 rounded ${stationParam===id? 'bg-sky-600 text-white':'bg-slate-700/60 hover:bg-slate-600/70'}`}>{id}</button>
@@ -255,7 +257,7 @@ export function TrendsPage(){
             )}
             {recent.length>0 && (
               <div>
-                <p className="uppercase tracking-wide text-[9px] mb-1 text-slate-500">Recent</p>
+                <p className="uppercase tracking-wide text-[9px] mb-1 text-slate-500">{t('trends.recent','Recent')}</p>
                 <div className="flex flex-wrap gap-1">
                   {recent.map(id=> (
                     <button key={id} onClick={()=> selectStation(id)} className={`px-2 py-0.5 rounded ${stationParam===id? 'bg-sky-600 text-white':'bg-slate-700/60 hover:bg-slate-600/70'}`}>{id}</button>
@@ -266,8 +268,8 @@ export function TrendsPage(){
           </div>
         </div>
         <div ref={listCardRef} className="flex-1 rounded-lg ring-1 ring-border bg-card/60 flex flex-col min-h-0 relative">
-          <div ref={listHeaderRef} className="text-[11px] font-medium px-3 py-2 border-b border-border/60 bg-card/80 backdrop-blur sticky top-0 z-10">Stations</div>
-          <ScrollArea className="text-xs relative px-3 pr-3 pb-6" viewportRef={listRef as any} onScroll={onScroll as any}
+          <div ref={listHeaderRef} className="text-[11px] font-medium px-3 py-2 border-b border-border/60 bg-card/80 backdrop-blur sticky top-0 z-10">{t('nav.stations','Stations')}</div>
+          <ScrollArea className="text-xs relative px-3 pr-3 pb-6" viewportRef={listRef} onScroll={onScroll}
             style={listViewportMaxH? { maxHeight: listViewportMaxH } : undefined}
           >
             <div style={{height: filteredStations.length * rowHeight}}>
@@ -301,7 +303,7 @@ export function TrendsPage(){
           </ScrollArea>
           {/* Bottom fade indicator to show more content is scrollable */}
           <div className="pointer-events-none absolute bottom-[26px] left-0 right-0 h-6 bg-gradient-to-t from-card/90 to-transparent" />
-          <div ref={listFooterRef} className="text-[10px] px-3 py-1 border-t border-border/60 text-slate-500 flex justify-between"><span>{filteredStations.length} results</span><span>{favorites.length} fav</span></div>
+          <div ref={listFooterRef} className="text-[10px] px-3 py-1 border-t border-border/60 text-slate-500 flex justify-between"><span>{filteredStations.length} {t('trends.results','results')}</span><span>{favorites.length} {t('trends.favShort','fav')}</span></div>
         </div>
       </aside>
     </div>

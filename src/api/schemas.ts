@@ -17,8 +17,16 @@ export const AlertSchema = z.object({
 export const StationSchema = z.object({
   id: z.string(),
   name: z.string(),
+  // basic geolocation
   location: z.object({ lat: z.number(), lon: z.number() }),
-  latestAQI: z.number().min(0).max(500)
+  latestAQI: z.number().min(0).max(500),
+  // additional metadata for filtering / display
+  dominantPollutant: z.string().optional(),
+  source: z.enum(['OpenAQ','AirNow','Pandora']).optional(),
+  status: z.enum(['online','offline']).optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
+  lastUpdated: z.number().int().positive().optional()
 })
 
 export const HistoricalPointSchema = z.object({ ts: z.number(), value: z.number(), pollutant: z.string() })

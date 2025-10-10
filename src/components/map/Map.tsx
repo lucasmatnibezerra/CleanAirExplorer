@@ -19,6 +19,8 @@ function MapContainer({ onMapLoaded, onMapError, onMapFallback }: LazyMapProps){
   const { data: stations } = useStations()
   const showStations = useAppStore(s => s.layers.find(l=>l.key==='stations')?.visible)
   const setSelected = useAppStore(s => s.setSelectedStation)
+  const hovered = useAppStore(s => s.hoveredStationId)
+  const setHovered = useAppStore(s => s.setHoveredStation)
   useEffect(()=>{
     let map: any;
     let cancelled = false;
@@ -112,12 +114,29 @@ function MapContainer({ onMapLoaded, onMapError, onMapFallback }: LazyMapProps){
           map.on('mousemove', layerId, (e:any) => {
             const f = e.features?.[0];
             if(!f) return
-            const { aqi, name } = f.properties
+            const { aqi, name, id } = f.properties
+            setHovered(id)
             popup.setLngLat(e.lngLat).setHTML(`<div style="font:12px system-ui"><strong>${name}</strong><br/>AQI: <b>${aqi}</b></div>`).addTo(map)
           })
-          map.on('mouseleave', layerId, ()=> { popup?.remove() })
+          map.on('mouseleave', layerId, ()=> { popup?.remove(); setHovered(null) })
           map.on('mouseenter', layerId, () => map.getCanvas().style.cursor='pointer')
           map.on('mouseleave', layerId, () => map.getCanvas().style.cursor='')
+
+          // highlight layer for hovered/selected station (initially invisible)
+          const highlightLayerId = 'stations-highlight'
+          if(!map.getLayer(highlightLayerId)){
+            map.addLayer({
+              id: highlightLayerId,
+              type: 'circle',
+              source: 'stations-src',
+              paint: {
+                'circle-radius': 0,
+                'circle-stroke-width': 2,
+                'circle-stroke-color': '#fff',
+                'circle-color': '#60a5fa'
+              }
+            })
+          }
         }
       }
       map.on('load', () => {
@@ -129,6 +148,23 @@ function MapContainer({ onMapLoaded, onMapError, onMapFallback }: LazyMapProps){
         console.log('[Map] styledata event')
         addStations()
       })
+      // react to hovered changes: update highlight paint/filter
+      const updateHighlight = ()=>{
+        try{
+          const hl = map.getLayer('stations-highlight')
+          if(!hl) return
+          if(hovered){
+            // set a filter to show only hovered id and increase radius
+            map.setFilter('stations-highlight', ['==', ['get','id'], hovered])
+            map.setPaintProperty('stations-highlight', 'circle-radius', 8)
+          } else {
+            map.setFilter('stations-highlight', ['==', ['get','id'], ''])
+            map.setPaintProperty('stations-highlight', 'circle-radius', 0)
+          }
+          }catch{/* noop */}
+      }
+      updateHighlight()
+      // paint updates for hovered station are handled by outer effect (hook dependency)
       map.on('error', (e:any) => {
         if(e?.error){
           console.error('[Map] error event', e.error)
@@ -137,6 +173,6 @@ function MapContainer({ onMapLoaded, onMapError, onMapFallback }: LazyMapProps){
       })
     })()
     return () => { cancelled = true; popup?.remove(); if(map) map.remove() }
-  },[stations, showStations, setSelected])
+  },[stations, showStations, setSelected, hovered, setHovered, onMapLoaded, onMapError, onMapFallback])
   return <div ref={ref} className="absolute inset-0" />
 }

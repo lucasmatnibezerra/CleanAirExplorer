@@ -14,12 +14,16 @@ interface AppState {
   layers: LayerState[];
   settings: SettingsState;
   selectedStationId: string | null;
+  hoveredStationId?: string | null;
+  favorites: string[];
   forecastHourIndex: number;
   language: string;
   heatmapOpacity: number;
   heatmapBlendMode: string;
   toggleLayer: (key:LayerKey) => void;
   setSelectedStation: (id: string | null) => void;
+  setHoveredStation: (id: string | null) => void;
+  toggleFavorite: (id: string) => void;
   updateSettings: (partial: Partial<SettingsState>) => void;
   setHomeLocation: (lat:number, lon:number) => void;
   setForecastHourIndex: (idx:number) => void;
@@ -52,6 +56,10 @@ export const useAppStore = create<AppState>()(persist((set)=>({
     layers: s.layers.map(l => l.key===key ? {...l, visible: !l.visible}: l)
   })),
   setSelectedStation: (id) => set({ selectedStationId: id }),
+  hoveredStationId: null,
+  favorites: [],
+  setHoveredStation: (id) => set({ hoveredStationId: id }),
+  toggleFavorite: (id) => set(s => ({ favorites: s.favorites.includes(id) ? s.favorites.filter(x=>x!==id) : [...s.favorites, id] })),
   updateSettings: (partial) => set(s => ({ settings: { ...s.settings, ...partial } })),
   setHomeLocation: (lat, lon) => set(s => ({ settings: { ...s.settings, homeLocation: {lat, lon} } })),
   setForecastHourIndex: (idx) => set({ forecastHourIndex: idx }),

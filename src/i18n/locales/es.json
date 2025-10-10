@@ -36,7 +36,8 @@
     "alerts": "Alertas",
     "chooseLayers": "Elegir Capas",
     "openMenu": "Abrir menú",
-    "closeMenu": "Cerrar menú"
+    "closeMenu": "Cerrar menú",
+    "clear": "Limpiar"
   },
   "layout": {
     "navigation": "Navegación",
@@ -147,5 +148,32 @@
     "veryUnhealthy": "Muy no saludable",
     "hazardous": "Peligroso",
     "noData": "Sin datos"
+  },
+  "stationsPage": {
+    "title": "Estaciones de Monitoreo (simulado)",
+    "searchLabel": "Buscar estaciones",
+    "searchPlaceholder": "Buscar por nombre, ciudad o id",
+    "sort": { "label": "Ordenar", "severity": "Severidad", "distance": "Distancia", "updated": "Actualizado", "name": "Nombre" },
+    "clearFilters": "Limpiar filtros",
+    "favorite": "Favorito",
+    "empty": "Ninguna estación coincide con tus filtros.",
+    "resetFilters": "Restablecer filtros"
+  },
+  "trends": {
+    "title": "Tendencias históricas",
+    "breadcrumb": "Miga de pan",
+    "clearSelected": "Limpiar estación seleccionada",
+    "pollutant": "Contaminante",
+    "loadingChart": "Cargando gráfico…",
+    "source": "Fuente simulada · Actualizado ahora",
+    "empty": "Sin datos para este rango/contaminante. Pruebe otro intervalo.",
+    "searchStation": "Buscar estación…",
+    "country": "País",
+    "sourceFilter": "Fuente",
+    "status": "Estado",
+    "favorites": "Favoritos",
+    "recent": "Recientes",
+    "results": "resultados",
+    "favShort": "fav"
   }
 }

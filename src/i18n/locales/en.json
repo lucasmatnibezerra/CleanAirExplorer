@@ -36,7 +36,8 @@
     "alerts": "Alerts",
     "chooseLayers": "Choose Layers",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "clear": "Clear"
   },
   "layout": {
     "navigation": "Navigation",
@@ -147,5 +148,32 @@
     "veryUnhealthy": "Very Unhealthy",
     "hazardous": "Hazardous",
     "noData": "No data"
+  },
+  "stationsPage": {
+    "title": "Monitoring Stations (mock)",
+    "searchLabel": "Search stations",
+    "searchPlaceholder": "Search by name, city or id",
+    "sort": { "label": "Sort", "severity": "Severity", "distance": "Distance", "updated": "Updated", "name": "Name" },
+    "clearFilters": "Clear filters",
+    "favorite": "Favorite",
+    "empty": "No stations match your filters.",
+    "resetFilters": "Reset filters"
+  },
+  "trends": {
+    "title": "Historical trends",
+    "breadcrumb": "Breadcrumb",
+    "clearSelected": "Clear selected station",
+    "pollutant": "Pollutant",
+    "loadingChart": "Loading chart…",
+    "source": "Source mock · Updated just now",
+    "empty": "No data for this range/pollutant. Try another interval.",
+    "searchStation": "Search station…",
+    "country": "Country",
+    "sourceFilter": "Source",
+    "status": "Status",
+    "favorites": "Favorites",
+    "recent": "Recent",
+    "results": "results",
+    "favShort": "fav"
   }
 }
